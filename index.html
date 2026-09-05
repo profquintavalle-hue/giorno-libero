@@ -2,283 +2,1730 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scelta del giorno libero — analisi festività</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pianificatore Moduli</title>
 <style>
   :root{
-    --bg:#fdf6ec; --card:#fffaf3; --line:#e8d5bd; --ink:#4a3520;
-    --accent:#c1622d; --accent2:#e08b3e; --soft:#f6e5cf; --ok:#7a8b3c;
+    --carta: #F7F2E6;
+    --carta-alt: #EFE7D6;
+    --inchiostro: #2B241C;
+    --inchiostro-tenue: #6B5F4E;
+    --bordo: #D9CBAE;
+    --teal: #1F5C56;
+    --teal-chiaro: #3E7C74;
+    --ruggine: #B3492A;
+    --oliva: #7C8A4E;
+    --ambra: #B8863B;
   }
-  *{box-sizing:border-box}
-  body{margin:0;padding:24px;background:var(--bg);color:var(--ink);
-       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5}
-  .wrap{max-width:1000px;margin:0 auto}
-  h1{font-size:24px;margin:0 0 4px;color:var(--accent)}
-  .sub{margin:0 0 22px;font-size:14px;opacity:.75}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px;
-        box-shadow:0 1px 3px rgba(120,80,40,.07)}
-  h2{font-size:16px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
-  label{font-size:13px;font-weight:600;display:block;margin-bottom:4px}
-  input,select{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;
-               background:#fff;color:var(--ink)}
-  input[type=date]{min-width:150px}
-  input[type=number]{width:110px}
-  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
-  th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
-  td input{width:100%}
-  button{font:inherit;font-size:14px;font-weight:600;padding:9px 16px;border:none;border-radius:8px;
-         background:var(--accent);color:#fff;cursor:pointer}
-  button:hover{background:#a8511f}
-  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
-  button.ghost:hover{background:var(--soft)}
-  button.mini{padding:4px 9px;font-size:13px;background:transparent;color:#a8511f;border:1px solid var(--line)}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-  .bar{height:16px;border-radius:8px;background:linear-gradient(90deg,var(--accent2),var(--accent));min-width:3px}
-  .best{background:#eef2dd}
-  .worst{background:#fbe7d8}
-  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px}
-  .tag.b{background:var(--ok);color:#fff}
-  .tag.w{background:var(--accent);color:#fff}
-  .note{font-size:13px;background:var(--soft);border-radius:8px;padding:12px;margin-top:14px}
-  ul.det{margin:6px 0 0;padding-left:18px;font-size:13px}
-  .hidden{display:none}
-  .hint{font-size:12px;opacity:.7;margin-top:6px}
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--carta);
+    color:var(--inchiostro);
+    font-family:-apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3{
+    font-family:Georgia, "Iowan Old Style", serif;
+    font-weight:600;
+    margin:0;
+  }
+  .app{
+    display:grid;
+    grid-template-columns:260px 1fr;
+    min-height:100vh;
+  }
+  .sidebar{
+    background:var(--carta-alt);
+    border-right:1px solid var(--bordo);
+    padding:24px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .sidebar h1{
+    font-size:1.15rem;
+    color:var(--teal);
+    margin-bottom:4px;
+    letter-spacing:0.2px;
+  }
+  .sidebar .sottotitolo{
+    font-size:0.75rem;
+    color:var(--inchiostro-tenue);
+    margin-bottom:18px;
+  }
+  .tab-piano{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.88rem;
+    border:1px solid transparent;
+    color:var(--inchiostro);
+  }
+  .tab-piano:hover{ background:rgba(31,92,86,0.08); }
+  .tab-piano.attivo{
+    background:var(--carta);
+    border-color:var(--bordo);
+    font-weight:600;
+    color:var(--teal);
+  }
+  .tab-piano .elimina-tab{
+    opacity:0;
+    color:var(--ruggine);
+    font-size:0.8rem;
+    padding:2px 6px;
+    border-radius:4px;
+  }
+  .tab-piano:hover .elimina-tab{ opacity:0.7; }
+  .tab-piano .elimina-tab:hover{ opacity:1; background:rgba(179,73,42,0.12); }
+  .btn-nuovo-piano{
+    margin-top:10px;
+    padding:9px 12px;
+    border-radius:8px;
+    border:1px dashed var(--bordo);
+    background:transparent;
+    color:var(--inchiostro-tenue);
+    cursor:pointer;
+    font-size:0.85rem;
+    text-align:left;
+  }
+  .btn-nuovo-piano:hover{ border-color:var(--teal); color:var(--teal); }
+
+  .sezione-backup{
+    margin-top:auto;
+    padding-top:18px;
+    border-top:1px solid var(--bordo);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .titolo-backup{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--inchiostro-tenue);
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .btn-backup{
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid var(--bordo);
+    background:var(--carta);
+    color:var(--inchiostro);
+    cursor:pointer;
+    font-size:0.82rem;
+    text-align:left;
+    font-family:inherit;
+  }
+  .btn-backup:hover{ border-color:var(--teal); color:var(--teal); }
+  .nota-backup{
+    font-size:0.7rem;
+    color:var(--inchiostro-tenue);
+    line-height:1.4;
+    margin-top:2px;
+  }
+  .nota-backup.ok{ color:var(--oliva); font-weight:600; }
+  .nota-backup.errore{ color:var(--ruggine); font-weight:600; }
+
+  .main{ padding:28px 36px 60px; overflow-x:auto; }
+  .vuoto{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:70vh;
+    color:var(--inchiostro-tenue);
+    text-align:center;
+    gap:10px;
+  }
+  .vuoto button{
+    margin-top:8px;
+    padding:10px 18px;
+    border-radius:8px;
+    border:none;
+    background:var(--teal);
+    color:var(--carta);
+    cursor:pointer;
+    font-size:0.9rem;
+  }
+
+  .intestazione-piano{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:6px;
+  }
+  .intestazione-piano input[type=text]{
+    font-family:Georgia, serif;
+    font-size:1.5rem;
+    font-weight:600;
+    color:var(--teal);
+    border:none;
+    background:transparent;
+    padding:2px 4px;
+    border-bottom:1px solid transparent;
+  }
+  .intestazione-piano input[type=text]:focus{ outline:none; border-bottom:1px solid var(--bordo); }
+  .sotto-intestazione{ font-size:0.82rem; color:var(--inchiostro-tenue); margin-bottom:22px; }
+
+  .pannello{
+    background:var(--carta);
+    border:1px solid var(--bordo);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:20px;
+  }
+  .pannello summary{
+    cursor:pointer;
+    font-family:Georgia, serif;
+    font-weight:600;
+    color:var(--teal);
+    font-size:1rem;
+    outline:none;
+  }
+  .pannello[open] summary{ margin-bottom:14px; }
+
+  .riga-campi{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:12px; }
+  .campo{ display:flex; flex-direction:column; gap:4px; font-size:0.8rem; color:var(--inchiostro-tenue); }
+  .campo input[type=date], .campo input[type=text], .campo input[type=number]{
+    border:1px solid var(--bordo);
+    border-radius:6px;
+    padding:7px 9px;
+    font-size:0.85rem;
+    background:var(--carta);
+    color:var(--inchiostro);
+    font-family:inherit;
+  }
+  .giorni-settimana{ display:flex; gap:6px; flex-wrap:wrap; }
+  .giorno-chip{
+    padding:6px 10px;
+    border-radius:16px;
+    border:1px solid var(--bordo);
+    font-size:0.78rem;
+    cursor:pointer;
+    color:var(--inchiostro-tenue);
+    user-select:none;
+  }
+  .giorno-chip.attivo{ background:var(--teal); border-color:var(--teal); color:var(--carta); }
+
+  table.tabella-moduli{ width:100%; border-collapse:collapse; font-size:0.85rem; }
+  table.tabella-moduli th{
+    text-align:left;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--inchiostro-tenue);
+    border-bottom:1px solid var(--bordo);
+    padding:6px 8px;
+    font-weight:600;
+  }
+  table.tabella-moduli td{
+    padding:6px 8px;
+    border-bottom:1px solid rgba(217,203,174,0.5);
+    vertical-align:middle;
+  }
+  table.tabella-moduli input[type=text]{
+    width:100%;
+    border:1px solid transparent;
+    background:transparent;
+    padding:5px 6px;
+    border-radius:5px;
+    font-size:0.85rem;
+    font-family:inherit;
+    color:var(--inchiostro);
+  }
+  table.tabella-moduli input[type=text]:hover, table.tabella-moduli input[type=text]:focus{
+    border-color:var(--bordo); background:var(--carta-alt); outline:none;
+  }
+  table.tabella-moduli input[type=number]{
+    width:56px;
+    border:1px solid var(--bordo);
+    border-radius:5px;
+    padding:5px 6px;
+    font-size:0.85rem;
+    text-align:center;
+    font-family:inherit;
+  }
+  .azione-icona{
+    background:none; border:none; cursor:pointer; color:var(--inchiostro-tenue);
+    font-size:0.95rem; padding:3px 6px; border-radius:5px;
+  }
+  .azione-icona:hover{ background:var(--carta-alt); color:var(--inchiostro); }
+  .azione-icona.elimina:hover{ color:var(--ruggine); }
+  .btn-aggiungi{
+    margin-top:12px;
+    padding:7px 14px;
+    border-radius:6px;
+    border:1px dashed var(--bordo);
+    background:transparent;
+    color:var(--inchiostro-tenue);
+    cursor:pointer;
+    font-size:0.82rem;
+  }
+  .btn-aggiungi:hover{ border-color:var(--teal); color:var(--teal); }
+
+  .riga-verifiche-modulo td{
+    padding:2px 8px 8px 44px !important;
+    border-bottom:1px solid rgba(217,203,174,0.5) !important;
+    background:rgba(184,134,59,0.04);
+  }
+  .riga-verifica-inline{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    font-size:0.78rem; color:var(--inchiostro-tenue);
+    padding:4px 0;
+  }
+  .riga-verifica-inline select{
+    padding:4px 6px; border:1px solid var(--bordo); border-radius:5px;
+    font-family:inherit; font-size:0.78rem; background:var(--carta); color:var(--inchiostro);
+  }
+  .riga-verifica-inline input[type=number]{
+    width:44px; padding:3px 5px; border:1px solid var(--bordo); border-radius:5px;
+    font-size:0.78rem; text-align:center; font-family:inherit;
+  }
+  .riga-verifica-inline .mini-label{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .moduli-verifica{ position:relative; }
+  .btn-moduli-verifica{ max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    padding:5px 9px; border:1px solid var(--bordo); border-radius:6px; background:#fff; color:inherit;
+    font-family:inherit; font-size:0.78rem; cursor:pointer; vertical-align:middle; }
+  .btn-moduli-verifica:hover{ border-color:var(--ambra); }
+  .pannello-moduli-verifica{ position:absolute; z-index:20; top:120%; left:0; width:290px; max-height:260px; overflow:auto;
+    background:#fff; border:1px solid var(--bordo); border-radius:8px; padding:8px 10px;
+    box-shadow:0 6px 18px rgba(90,70,40,.16); display:flex; flex-direction:column; gap:4px; }
+  .pannello-moduli-verifica[hidden]{ display:none; }
+  .riga-modulo-verifica{ display:flex; align-items:flex-start; gap:6px; font-size:0.78rem; line-height:1.3; }
+  .riga-verifica-inline .badge-verifica{ color:var(--ambra); font-weight:700; }
+  .riga-verifica-inline .data-verifica{ font-weight:600; font-size:0.76rem; white-space:nowrap; }
+  .riga-verifica-inline input[type=date]{ padding:3px 5px; border:1px solid var(--bordo); border-radius:5px; font-size:0.76rem; font-family:inherit; }
+  .riga-verifica-inline .tag-auto{ font-size:0.72rem; color:var(--ambra); background:rgba(184,134,59,0.12); padding:2px 7px; border-radius:10px; white-space:nowrap; }
+  .riga-verifica-inline .link-auto{ font-size:0.72rem; color:var(--teal); background:none; border:none; cursor:pointer; padding:2px 4px; white-space:nowrap; }
+  .riga-verifica-inline .link-auto:hover{ text-decoration:underline; }
+  .riga-verifica-inline .avviso-inline{ font-size:0.72rem; color:var(--ruggine); white-space:nowrap; }
+  .riga-verifica-inline .check-prevista{ font-weight:600; color:var(--inchiostro); }
+  .riga-verifica-inline.non-attiva{ opacity:0.5; }
+  .riga-verifica-inline.non-attiva select, .riga-verifica-inline.non-attiva input[type=number], .riga-verifica-inline.non-attiva input[type=date]{ text-decoration:line-through; }
+  .btn-aggiungi-verifica-inline{
+    margin-top:2px;
+    padding:3px 10px;
+    border-radius:5px;
+    border:1px dashed var(--bordo);
+    background:transparent;
+    color:var(--inchiostro-tenue);
+    cursor:pointer;
+    font-size:0.74rem;
+  }
+  .btn-aggiungi-verifica-inline:hover{ border-color:var(--ambra); color:var(--ambra); }
+
+  .lista-eccezioni{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .numero-modulo{ display:inline-block; min-width:22px; margin-right:8px; text-align:right;
+    font-size:0.78rem; font-weight:700; color:var(--ambra); vertical-align:middle; }
+  .input-nome-modulo{ width:calc(100% - 34px); }
+  .nota-verifica{ display:block; font-size:0.68rem; opacity:.6; }
+  .riga-etichetta{ display:flex; align-items:center; gap:8px; margin:-4px 0 12px; flex-wrap:wrap; }
+  .riga-etichetta select{ padding:6px 10px; border:1px solid var(--bordo); border-radius:6px;
+                          font-family:inherit; font-size:0.83rem; background:#fff; color:inherit; }
+  .nota-etichetta{ font-size:0.75rem; opacity:.6; }
+  .blocco-incolla{ margin-top:10px; border:1px dashed var(--bordo); border-radius:8px; padding:10px 12px; }
+  .blocco-incolla summary{ cursor:pointer; font-size:0.83rem; font-weight:600; color:var(--teal); }
+  .blocco-incolla textarea{ width:100%; padding:8px 10px; border:1px solid var(--bordo); border-radius:6px;
+                            font-family:inherit; font-size:0.83rem; resize:vertical; margin-bottom:8px; }
+  .riga-precompila{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:0.83rem; margin-bottom:6px; }
+  .riga-precompila input[type=number]{ width:70px; padding:6px 8px; border:1px solid var(--bordo); border-radius:6px; }
+  .riga-precompila input[type=text]{ width:150px; padding:6px 8px; border:1px solid var(--bordo); border-radius:6px; font-family:inherit; }
+  .riga-precompila .sep{ margin-left:-4px; opacity:.65; }
+  .riga-precompila .chk{ display:flex; align-items:center; gap:4px; opacity:.8; }
+  .btn-precompila{ padding:6px 12px; border:1px solid var(--teal); border-radius:6px; background:#fff; color:var(--teal);
+                   font-family:inherit; font-size:0.83rem; font-weight:600; cursor:pointer; }
+  .btn-precompila:hover{ background:var(--teal); color:#fff; }
+  .nota-precompila{ font-size:0.75rem; opacity:.65; margin-bottom:8px; }
+  .riga-eccezione{ display:flex; align-items:center; gap:10px; font-size:0.83rem; }
+  .riga-eccezione input[type=date]{ padding:6px 8px; border:1px solid var(--bordo); border-radius:6px; }
+  .riga-eccezione input[type=text]{ flex:1; padding:6px 8px; border:1px solid var(--bordo); border-radius:6px; font-family:inherit; }
+  .badge-tipo{
+    font-size:0.7rem; padding:2px 8px; border-radius:10px; font-weight:600;
+  }
+  .badge-tipo.saltata{ background:rgba(179,73,42,0.14); color:var(--ruggine); }
+  .badge-tipo.extra{ background:rgba(124,138,78,0.16); color:var(--oliva); }
+
+  /* GANTT */
+  .gantt-wrap{ margin-top:8px; }
+  .gantt-riepilogo{
+    display:flex; gap:22px; margin-bottom:16px; font-size:0.82rem; color:var(--inchiostro-tenue);
+  }
+  .gantt-riepilogo b{ color:var(--inchiostro); }
+  .tab-riepilogo{ width:100%; border-collapse:collapse; margin:4px 0 16px; font-size:0.82rem; }
+  .tab-riepilogo th, .tab-riepilogo td{ padding:6px 10px; text-align:left; border-bottom:1px solid var(--bordo); }
+  .tab-riepilogo th{ font-size:0.72rem; text-transform:uppercase; letter-spacing:.05em; opacity:.7; }
+  .tab-riepilogo td:not(:first-child), .tab-riepilogo th:not(:first-child){ text-align:center; width:70px; }
+  .tab-riepilogo .riga-totale td{ font-weight:700; border-bottom:none; }
+  .banner-sforo{
+    background:rgba(179,73,42,0.1); border:1px solid rgba(179,73,42,0.35); color:var(--ruggine);
+    border-radius:8px; padding:11px 15px; margin-bottom:14px; font-size:0.88rem; line-height:1.5;
+  }
+  .banner-sforo b{ color:var(--ruggine); }
+  .banner-ok{
+    background:rgba(124,138,78,0.1); border:1px solid rgba(124,138,78,0.3); color:var(--oliva);
+    border-radius:8px; padding:11px 15px; margin-bottom:14px; font-size:0.88rem; line-height:1.5;
+  }
+  .banner-ok b{ color:var(--oliva); }
+  .gantt-scroll{ overflow-x:auto; border:1px solid var(--bordo); border-radius:10px; background:var(--carta); }
+  .gantt{ position:relative; min-width:900px; padding:14px 20px 20px; }
+  .gantt-mesi{
+    display:flex;
+    border-bottom:1px solid var(--bordo);
+    margin-bottom:10px;
+    padding-bottom:6px;
+  }
+  .gantt-mese-label{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--inchiostro-tenue);
+    border-left:1px solid var(--bordo);
+    padding-left:8px;
+  }
+  .riga-gantt{
+    position:relative;
+    height:40px;
+    border-bottom:1px dashed rgba(217,203,174,0.6);
+  }
+  .riga-gantt:last-child{ border-bottom:none; }
+  .riga-gantt .etichetta-modulo{
+    position:absolute;
+    left:0; top:0;
+    font-size:0.78rem;
+    color:var(--inchiostro-tenue);
+    line-height:40px;
+    pointer-events:none;
+  }
+  .barra-modulo{
+    position:absolute;
+    top:7px;
+    height:26px;
+    border-radius:6px;
+    background:var(--teal-chiaro);
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    font-size:0.76rem;
+    color:var(--carta);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:left 0.45s cubic-bezier(.4,0,.2,1), width 0.45s cubic-bezier(.4,0,.2,1), background 0.3s;
+    box-shadow:0 1px 2px rgba(43,36,28,0.15);
+  }
+  .barra-modulo.overflow{ background:var(--ruggine); }
+  .barra-modulo.corrente{ box-shadow:0 0 0 2px var(--ambra); }
+  .oggi-linea{
+    position:absolute;
+    top:0; bottom:0;
+    width:2px;
+    background:var(--ruggine);
+    opacity:0.55;
+  }
+  .oggi-etichetta{
+    position:absolute;
+    top:-16px;
+    font-size:0.65rem;
+    color:var(--ruggine);
+    transform:translateX(-50%);
+    white-space:nowrap;
+  }
+  .verifica-marcatore{
+    position:absolute;
+    top:0; bottom:0;
+    background:rgba(184,134,59,0.18);
+    border-left:2px solid var(--ambra);
+    border-right:2px solid var(--ambra);
+    pointer-events:auto;
+  }
+  .verifica-etichetta{
+    position:absolute;
+    bottom:-2px;
+    left:2px;
+    font-size:0.62rem;
+    color:var(--ambra);
+    font-weight:700;
+    white-space:nowrap;
+    background:var(--carta);
+    padding:0 3px;
+    border-radius:3px;
+  }
+
+  .avviso{
+    margin-top:14px;
+    padding:10px 14px;
+    background:rgba(179,73,42,0.09);
+    border:1px solid rgba(179,73,42,0.3);
+    border-radius:8px;
+    font-size:0.82rem;
+    color:var(--ruggine);
+  }
+
+  .mini-calendario{ margin-top:10px; }
+  .mesi-calendario{ display:flex; flex-wrap:wrap; gap:18px; }
+  .mese-cal{ font-size:0.72rem; }
+  .mese-cal .titolo-mese{ font-weight:600; color:var(--inchiostro-tenue); margin-bottom:4px; text-align:center; text-transform:capitalize; }
+  .griglia-giorni{ display:grid; grid-template-columns:repeat(7,20px); gap:2px; }
+  .giorno-cella{
+    width:20px; height:20px; display:flex; align-items:center; justify-content:center;
+    border-radius:4px; cursor:pointer; color:var(--inchiostro-tenue);
+  }
+  .giorno-cella.lezione{ background:rgba(31,92,86,0.12); color:var(--teal); font-weight:600; }
+  .giorno-cella.saltata{ background:var(--ruggine); color:var(--carta); }
+  .giorno-cella.extra{ background:var(--oliva); color:var(--carta); }
+  .giorno-cella.verifica{ background:var(--ambra); color:var(--carta); font-weight:700; }
+  .giorno-cella.vuota{ cursor:default; }
+  .giorno-cella:not(.vuota):hover{ outline:1px solid var(--ambra); }
+  .legenda-cal{ display:flex; gap:14px; font-size:0.72rem; color:var(--inchiostro-tenue); margin-top:10px; flex-wrap:wrap; }
+  .legenda-cal span{ display:inline-flex; align-items:center; gap:5px; }
+  .legenda-cal i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
 </style>
 </head>
 <body>
-<div class="wrap">
-
-<h1>Scelta del giorno libero</h1>
-<p class="sub">Quante giornate di lezione cadono su ciascun giorno della settimana per effetto di festività e sospensioni. Vale per qualsiasi anno scolastico.</p>
-
-<div class="card">
-  <h2>1 · Anno scolastico</h2>
-  <div class="row">
-    <div><label>Anno di partenza</label><input type="number" id="anno" value="2026" min="2000" max="2100"></div>
-    <div><label>Inizio lezioni</label><input type="date" id="inizio"></div>
-    <div><label>Fine lezioni</label><input type="date" id="fine"></div>
-    <div><label>Settimana</label>
-      <select id="settimana">
-        <option value="5">Corta (lun–ven)</option>
-        <option value="6">Lunga (lun–sab)</option>
-      </select>
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <h1>Pianificatore</h1>
+    <div class="sottotitolo">Moduli didattici &middot; a cascata</div>
+    <div id="lista-tab"></div>
+    <button class="btn-nuovo-piano" id="btn-nuovo-piano">+ nuovo piano (classe/materia)</button>
+    <div class="sezione-backup">
+      <div class="titolo-backup">Backup</div>
+      <button class="btn-backup" id="btn-esporta-backup">⤓ Salva backup su file</button>
+      <button class="btn-backup" id="btn-importa-backup">⤒ Ripristina da file</button>
+      <input type="file" id="input-file-backup" accept=".json,application/json" style="display:none">
+      <div class="nota-backup" id="nota-backup">Consiglio: salva il file nel tuo Google Drive dopo modifiche importanti.</div>
     </div>
   </div>
-  <div class="row" style="margin-top:14px">
-    <div><label>Santo patrono — nome</label><input type="text" id="patronoNome" value="San Saturnino" style="width:200px"></div>
-    <div><label>giorno</label><input type="number" id="patronoG" value="30" min="1" max="31" style="width:70px"></div>
-    <div><label>mese</label><input type="number" id="patronoM" value="10" min="1" max="12" style="width:70px"></div>
-    <div><button class="ghost" onclick="generaAnno()">Genera festività dell'anno</button></div>
-  </div>
-  <p class="hint">Il generatore calcola da solo Pasqua, martedì grasso e le festività civili per l'anno indicato. Poi puoi correggere tutto a mano.</p>
-</div>
-
-<div class="card">
-  <h2>2 · Festività e sospensioni</h2>
-  <table>
-    <thead><tr><th style="width:44%">Descrizione</th><th>Dal</th><th>Al</th><th style="width:60px"></th></tr></thead>
-    <tbody id="tbody"></tbody>
-  </table>
-  <div class="actions">
-    <button class="ghost" onclick="addRow('','','')">+ Aggiungi riga</button>
-    <button class="ghost" onclick="svuota()">Svuota</button>
-    <button class="ghost" onclick="esporta()">Salva su file</button>
-    <button class="ghost" onclick="document.getElementById('importa').click()">Carica da file</button>
-    <input type="file" id="importa" accept=".json" class="hidden" onchange="importa(event)">
-    <button onclick="calcola()">Calcola</button>
-  </div>
-  <div class="note">Aggiungi i giorni deliberati dal Consiglio d'Istituto, i ponti e ogni altra sospensione locale. Con “Salva su file” conservi la configurazione di un anno e la ricarichi quando serve.</div>
-</div>
-
-<div class="card hidden" id="out">
-  <h2>3 · Risultato</h2>
-  <table>
-    <thead><tr><th>Giorno</th><th style="width:100px">Giorni persi</th><th style="width:40%"></th><th style="width:130px">Lezioni effettive</th></tr></thead>
-    <tbody id="res"></tbody>
-  </table>
-  <div class="note" id="consiglio"></div>
-  <div id="dettaglio"></div>
-</div>
-
+  <div class="main" id="main"></div>
 </div>
 
 <script>
-const GG = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const CHIAVE_STORAGE = 'pianificatore_moduli_dati_v1';
+const LETTERE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const MATERIE = ['Filosofia','Storia','Educazione civica'];
+const GIORNI_LABEL = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MESI_LABEL = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const PALETTE_BARRE = ['#3E7C74','#B8863B','#7C8A4E','#5B7BA6','#8B6BAA','#A6633E'];
 
-/* ---------- utilità date ---------- */
-function iso(d){
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function idCasuale(){ return Math.random().toString(36).slice(2,9); }
+function oggiISO(){ return new Date().toISOString().slice(0,10); }
+
+function caricaDati(){
+  try{
+    const raw = localStorage.getItem(CHIAVE_STORAGE);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.error(e); }
+  return { piani: [], pianoAttivo: null };
 }
-function D(y,m,g){ return new Date(y, m-1, g, 12); }
-function piu(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-
-// Pasqua (algoritmo di Gauss / Meeus per il calendario gregoriano)
-function pasqua(y){
-  const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4,
-        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
-        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451),
-        mese=Math.floor((h+l-7*m+114)/31), giorno=((h+l-7*m+114)%31)+1;
-  return D(y,mese,giorno);
+function salvaDati(){
+  localStorage.setItem(CHIAVE_STORAGE, JSON.stringify(stato));
+  ultimaModifica = Date.now();
 }
 
-/* ---------- tabella ---------- */
-function addRow(n,d,a){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td><input type="text" value="${n}" placeholder="es. Ponte"></td>
-    <td><input type="date" value="${d}"></td>
-    <td><input type="date" value="${a}"></td>
-    <td><button class="mini" onclick="this.closest('tr').remove()">✕</button></td>`;
-  document.getElementById('tbody').appendChild(tr);
+let stato = caricaDati();
+if(!stato.festeConfig) stato.festeConfig = { anno: (new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear()-1), nome:'San Saturnino', giorno:30, mese:10 };
+// Promemoria backup: confrontiamo l'ultima modifica con l'ultimo salvataggio su file.
+let ultimaModifica = 0;   // impostata da salvaDati()
+let ultimoBackup = 0;     // impostata da esportaBackup()
+
+function nuovoPiano(){
+  const p = {
+    id: idCasuale(),
+    nome: 'Nuova materia/classe',
+    anno: '', sezione: '', materia: '',
+    dataInizio: oggiISO(),
+    dataFine: (function(){ const d=new Date(); d.setMonth(d.getMonth()+9); return d.toISOString().slice(0,10); })(),
+    giorni: [1,3], // lun, mer di default (0=lun..6=dom)
+    festivita: [],
+    moduli: [
+      { id: idCasuale(), nome: 'Modulo 1', lezioni: 4, verifiche: [] },
+      { id: idCasuale(), nome: 'Modulo 2', lezioni: 4, verifiche: [] }
+    ],
+    eccezioni: [] // {data, tipo: 'saltata'|'extra', etichetta}
+  };
+  stato.piani.push(p);
+  stato.pianoAttivo = p.id;
+  salvaDati();
+  render();
 }
-function svuota(){ document.getElementById('tbody').innerHTML=''; }
 
-/* ---------- generatore ---------- */
-function generaAnno(){
-  const y = parseInt(document.getElementById('anno').value);
-  if(isNaN(y)) return;
-  const y2 = y+1;
-  const P = pasqua(y2);
+function pianoCorrente(){
+  const p = stato.piani.find(p => p.id === stato.pianoAttivo) || null;
+  if(p) p.moduli.forEach(m => {
+    if(!Array.isArray(m.verifiche)) m.verifiche = [];
+    m.verifiche.forEach(v => {
+      if(v.attiva === undefined) v.attiva = true;
+      if(v.data === undefined) v.data = null;
+      if(v.qualifica === 'ordinaria') v.qualifica = 'sommativa';
+      // scartoLezioni non è più usato: le date automatiche cadono subito dopo il modulo
+    });
+  });
+  return p;
+}
 
-  document.getElementById('inizio').value = iso(D(y,9,15));
-  document.getElementById('fine').value   = iso(D(y2,6,8));
+function eliminaPiano(id, ev){
+  ev.stopPropagation();
+  if(!confirm('Eliminare questo piano? Non si può annullare.')) return;
+  stato.piani = stato.piani.filter(p => p.id !== id);
+  if(stato.pianoAttivo === id){
+    stato.pianoAttivo = stato.piani.length ? stato.piani[0].id : null;
+  }
+  salvaDati();
+  render();
+}
 
-  const pn = document.getElementById('patronoNome').value.trim() || 'Santo patrono';
-  const pg = parseInt(document.getElementById('patronoG').value);
-  const pm = parseInt(document.getElementById('patronoM').value);
-  const annoPat = pm >= 9 ? y : y2;
+// ---------- Logica calendario / cascata ----------
 
-  const lista = [
-    ['San Francesco d\'Assisi (patrono d\'Italia)', D(y,10,4), D(y,10,4)],
-    [pn + ' (patrono)', D(annoPat,pm,pg), D(annoPat,pm,pg)],
-    ['Ognissanti', D(y,11,1), D(y,11,1)],
-    ['Immacolata', D(y,12,8), D(y,12,8)],
-    ['Vacanze di Natale', D(y,12,23), D(y2,1,6)],
-    ['Martedì grasso', piu(P,-47), piu(P,-47)],
-    ['Vacanze di Pasqua', piu(P,-3), piu(P,2)],
-    ['Anniversario della Liberazione', D(y2,4,25), D(y2,4,25)],
-    ['Sa die de sa Sardigna', D(y2,4,28), D(y2,4,28)],
-    ['Festa del Lavoro', D(y2,5,1), D(y2,5,1)],
-    ['Festa della Repubblica', D(y2,6,2), D(y2,6,2)]
+function parseISO(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function toISO(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function giornoSettimanaLunBase(d){
+  // JS: 0=domenica..6=sabato -> convertiamo a 0=lunedì..6=domenica
+  return (d.getDay() + 6) % 7;
+}
+function pasquaData(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+        f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+        mese=Math.floor((h+l-7*m+114)/31),giorno=((h+l-7*m+114)%31)+1;
+  return new Date(y, mese-1, giorno);
+}
+function dataPiu(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function dataISO(y,m,g){ return toISO(new Date(y, m-1, g)); }
+
+// Genera le festività di un anno scolastico che parte a settembre di annoInizio.
+// Le voci generate sono marcate auto:true, così una nuova precompilazione le
+// sostituisce senza toccare i ponti aggiunti a mano.
+function generaFestivita(annoInizio, patrono){
+  const y = annoInizio, y2 = annoInizio + 1;
+  const P = pasquaData(y2);
+  const mesePat = Number(patrono.mese)||10, giornoPat = Number(patrono.giorno)||30;
+  const annoPat = mesePat >= 9 ? y : y2;
+  const v = [
+    ['San Francesco d\'Assisi', dataISO(y,10,4), dataISO(y,10,4)],
+    [(patrono.nome||'Santo patrono'), dataISO(annoPat,mesePat,giornoPat), dataISO(annoPat,mesePat,giornoPat)],
+    ['Ognissanti', dataISO(y,11,1), dataISO(y,11,1)],
+    ['Immacolata', dataISO(y,12,8), dataISO(y,12,8)],
+    ['Vacanze di Natale', dataISO(y,12,23), dataISO(y2,1,6)],
+    ['Martedì grasso', toISO(dataPiu(P,-47)), toISO(dataPiu(P,-47))],
+    ['Vacanze di Pasqua', toISO(dataPiu(P,-3)), toISO(dataPiu(P,2))],
+    ['Anniversario della Liberazione', dataISO(y2,4,25), dataISO(y2,4,25)],
+    ['Sa die de sa Sardigna', dataISO(y2,4,28), dataISO(y2,4,28)],
+    ['Festa del Lavoro', dataISO(y2,5,1), dataISO(y2,5,1)],
+    ['Festa della Repubblica', dataISO(y2,6,2), dataISO(y2,6,2)]
   ];
-  svuota();
-  lista.forEach(x => addRow(x[0], iso(x[1]), iso(x[2])));
-  calcola();
+  return v.map(x => ({ etichetta:x[0], da:x[1], a:x[2], auto:true }));
 }
 
-/* ---------- salva / carica ---------- */
-function stato(){
-  return {
-    anno: document.getElementById('anno').value,
-    inizio: document.getElementById('inizio').value,
-    fine: document.getElementById('fine').value,
-    settimana: document.getElementById('settimana').value,
-    patrono: [document.getElementById('patronoNome').value,
-              document.getElementById('patronoG').value,
-              document.getElementById('patronoM').value],
-    righe: [...document.querySelectorAll('#tbody tr')].map(tr=>{
-      const c = tr.querySelectorAll('input'); return [c[0].value, c[1].value, c[2].value];
-    })
-  };
+// Sostituisce nel piano le festività generate, conservando quelle manuali.
+function precompilaFestivitaPiano(piano, annoInizio, patrono){
+  const manuali = piano.festivita.filter(f => !f.auto);
+  piano.festivita = generaFestivita(annoInizio, patrono).concat(manuali);
 }
-function esporta(){
-  const s = stato();
-  const blob = new Blob([JSON.stringify(s,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'giorno-libero-' + s.anno + '.json';
-  a.click();
+
+function inFestivita(iso, festivita){
+  return festivita.some(f => iso >= f.da && iso <= f.a);
 }
-function importa(ev){
-  const f = ev.target.files[0]; if(!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try{
-      const s = JSON.parse(r.result);
-      document.getElementById('anno').value = s.anno || 2026;
-      document.getElementById('inizio').value = s.inizio || '';
-      document.getElementById('fine').value = s.fine || '';
-      document.getElementById('settimana').value = s.settimana || '5';
-      if(s.patrono){
-        document.getElementById('patronoNome').value = s.patrono[0];
-        document.getElementById('patronoG').value = s.patrono[1];
-        document.getElementById('patronoM').value = s.patrono[2];
+
+// Restituisce l'elenco ordinato di date-lezione (ISO) per un piano,
+// tenendo conto di giorni settimanali, festività e eccezioni (saltate/extra)
+function calcolaLezioniDisponibili(piano){
+  const saltate = new Set(piano.eccezioni.filter(e=>e.tipo==='saltata').map(e=>e.data));
+  const extra = piano.eccezioni.filter(e=>e.tipo==='extra').map(e=>e.data);
+  const risultato = [];
+  if(piano.dataInizio && piano.dataFine){
+    let cursore = parseISO(piano.dataInizio);
+    const fine = parseISO(piano.dataFine);
+    while(cursore <= fine){
+      const iso = toISO(cursore);
+      const gg = giornoSettimanaLunBase(cursore);
+      if(piano.giorni.includes(gg) && !inFestivita(iso, piano.festivita) && !saltate.has(iso)){
+        risultato.push(iso);
       }
-      svuota();
-      (s.righe||[]).forEach(x => addRow(x[0], x[1], x[2]));
-      calcola();
-    }catch(e){ alert('File non valido.'); }
-  };
-  r.readAsText(f);
-  ev.target.value = '';
+      cursore.setDate(cursore.getDate()+1);
+    }
+  }
+  extra.forEach(iso => { if(!risultato.includes(iso)) risultato.push(iso); });
+  risultato.sort();
+  return risultato;
 }
 
-/* ---------- calcolo ---------- */
-function calcola(){
-  const vi = document.getElementById('inizio').value, vf = document.getElementById('fine').value;
-  if(!vi || !vf){ return; }
-  const inizio = new Date(vi+'T12:00:00'), fine = new Date(vf+'T12:00:00');
-  const nGiorni = parseInt(document.getElementById('settimana').value);
-  if(fine < inizio){ alert('La data di fine precede quella di inizio.'); return; }
+// Nomi dei moduli su cui verte la verifica: quello a cui è agganciata più
+// gli eventuali altri selezionati (in ordine di piano, anche non contigui).
+function moduliDellaVerifica(v, modulo, piano){
+  const extra = Array.isArray(v.moduli) ? v.moduli : [];
+  const nomi = [];
+  (piano ? piano.moduli : [modulo]).forEach(m => {
+    if(m.id === modulo.id || extra.includes(m.id)) nomi.push(m.nome);
+  });
+  return nomi.length ? nomi : [modulo.nome];
+}
+function etichettaVerifica(v, modulo, piano){
+  const tipo = v.tipo === 'orale' ? 'Orale' : 'Scritta';
+  const qualifica = v.qualifica === 'recupero' ? 'di recupero' : 'sommativa';
+  return tipo + ' ' + qualifica + ' — ' + moduliDellaVerifica(v, modulo, piano).join(', ');
+}
 
-  const sosp = new Map();
-  [...document.querySelectorAll('#tbody tr')].forEach(tr=>{
-    const c = tr.querySelectorAll('input');
-    const nome = c[0].value || 'Sospensione';
-    if(!c[1].value) return;
-    const d0 = new Date(c[1].value+'T12:00:00');
-    const d1 = c[2].value ? new Date(c[2].value+'T12:00:00') : d0;
-    for(let d=new Date(d0); d<=d1; d.setDate(d.getDate()+1)) sosp.set(iso(d), nome);
+// Messaggio chiaro sul perché una verifica non è collocabile.
+// esteso=true → testo lungo per il tooltip; esteso=false → etichetta breve.
+function messaggioProblemaVerifica(motivo, esteso){
+  switch(motivo){
+    case 'non-lezione':
+      return esteso
+        ? 'La data scelta non è un giorno di lezione per questa classe (controlla i giorni della settimana o un periodo di vacanza). Scegli un altro giorno o lascia la data su "auto".'
+        : 'non è un giorno di lezione';
+    case 'spazio-durata':
+      return esteso
+        ? 'Da questa data non ci sono abbastanza lezioni disponibili per l\'intera durata della verifica prima della fine del periodo.'
+        : 'lezioni insufficienti da qui';
+    case 'spazio-dopo-modulo':
+      return esteso
+        ? 'Non ci sono abbastanza lezioni dopo il modulo per collocare la verifica entro la fine del periodo. Allunga il periodo o riduci le lezioni.'
+        : 'niente spazio dopo il modulo';
+    default:
+      return esteso ? 'La verifica non è collocabile nel periodo indicato.' : 'non collocabile';
+  }
+}
+
+// Assegna i moduli in sequenza sulle lezioni disponibili.
+// Ogni verifica ha una data propria (fissata dall'utente o proposta automaticamente
+// subito dopo il suo modulo). Le verifiche attive che "occupano lezioni" riservano
+// i loro giorni ovunque cadano: i moduli in corso in quel punto scorrono di conseguenza.
+function calcolaPianificazione(piano){
+  const lezioni = calcolaLezioniDisponibili(piano);
+  const indiceLezione = {}; // iso -> indice
+  lezioni.forEach((iso, i)=> indiceLezione[iso] = i);
+
+  const riservate = {};
+
+  // 1) Riserva PRIMA tutte le lezioni delle verifiche con data FISSATA, attive e occupanti,
+  //    ovunque cadano (anche in mezzo a un modulo successivo).
+  function riservaDaData(iso, durata){
+    const start = indiceLezione[iso];
+    const indici = [];
+    if(start == null){ return { indici, fuori:true, motivo:'non-lezione' }; }
+    let count = 0;
+    for(let i = start; i < lezioni.length && count < durata; i++){
+      indici.push(i); count++;
+    }
+    return { indici, fuori: indici.length < durata, motivo: indici.length < durata ? 'spazio-durata' : null };
+  }
+
+  piano.moduli.forEach(m => {
+    (m.verifiche||[]).forEach(v => {
+      const attiva = v.attiva !== false;
+      const occupano = attiva && v.occupaLezioni !== false;
+      if(v.data && occupano){
+        const durata = Math.max(1, Number(v.durataLezioni)||1);
+        riservaDaData(v.data, durata).indici.forEach(i => riservate[i] = true);
+      }
+    });
   });
 
-  const persi = Array(6).fill(0), lezioni = Array(6).fill(0), elenco = [[],[],[],[],[],[]];
-  for(let d=new Date(inizio); d<=fine; d.setDate(d.getDate()+1)){
-    const w = (d.getDay()+6)%7;               // 0 = lunedì
-    if(w >= nGiorni) continue;                // domenica (e sabato se settimana corta)
-    const k = iso(d);
-    if(sosp.has(k)){
-      persi[w]++;
-      elenco[w].push(d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) + ' — ' + sosp.get(k));
-    } else lezioni[w]++;
-  }
+  // 2) Passaggio sequenziale: per ogni modulo assegna le lezioni di spiegazione
+  //    (saltando le già riservate), poi colloca subito le sue verifiche a data AUTOMATICA
+  //    riservando quei giorni, così il modulo successivo parte dopo di esse.
+  let cursore = 0;
+  const righe = [];
+  let overflowTotale = 0;
+  const verifichePianificate = [];
 
-  const max = Math.max(...persi.slice(0,nGiorni));
-  const min = Math.min(...persi.slice(0,nGiorni));
-  const res = document.getElementById('res'); res.innerHTML='';
-  for(let w=0; w<nGiorni; w++){
-    const tr = document.createElement('tr');
-    if(persi[w]===min) tr.className='best';
-    else if(persi[w]===max) tr.className='worst';
-    const tag = persi[w]===min ? '<span class="tag b">meno colpito</span>'
-              : persi[w]===max ? '<span class="tag w">più colpito</span>' : '';
-    tr.innerHTML = `<td><strong>${GG[w]}</strong>${tag}</td>
-      <td>${persi[w]}</td>
-      <td><div class="bar" style="width:${max? persi[w]/max*100 : 0}%"></div></td>
-      <td>${lezioni[w]}</td>`;
-    res.appendChild(tr);
-  }
+  piano.moduli.forEach(m => {
+    const necessarie = Math.max(1, Number(m.lezioni)||1);
+    const assegnate = [];
+    let idx = cursore;
+    while(assegnate.length < necessarie && idx < lezioni.length){
+      if(!riservate[idx]) assegnate.push(idx);
+      idx++;
+    }
+    cursore = idx;
+    const overflow = assegnate.length < necessarie;
+    if(overflow) overflowTotale += (necessarie - assegnate.length);
 
-  const migliori = GG.slice(0,nGiorni).filter((_,w)=>persi[w]===min);
-  const peggiori = GG.slice(0,nGiorni).filter((_,w)=>persi[w]===max);
-  document.getElementById('consiglio').innerHTML =
-    `<strong>Come leggerlo.</strong> Se il giorno libero cade su un giorno già “bucato” dalle festività, quei riposi li perdi: eri libera comunque. ` +
-    `Per guadagnare più giornate libere conviene chiedere <strong>${migliori.join(' o ')}</strong> (${min} sospensioni). ` +
-    `Da evitare in quest'ottica: <strong>${peggiori.join(', ')}</strong> (${max} sospensioni). ` +
-    `Se invece conta la continuità didattica, il ragionamento si rovescia: il giorno libero va dove le festività fanno già più danno.`;
+    let dataInizio, dataFine, ultimoIdx;
+    if(assegnate.length > 0){
+      dataInizio = lezioni[assegnate[0]];
+      dataFine = lezioni[assegnate[assegnate.length-1]];
+      ultimoIdx = assegnate[assegnate.length-1];
+    } else if(lezioni.length > 0){
+      dataInizio = dataFine = lezioni[Math.min(cursore, lezioni.length-1)];
+      ultimoIdx = Math.min(cursore, lezioni.length-1);
+    } else {
+      dataInizio = dataFine = piano.dataInizio;
+      ultimoIdx = -1;
+    }
+    const riga = { modulo: m, dataInizio, dataFine, dataFineTotale: dataFine, lezioniAssegnate: assegnate.length, lezioniPreviste: necessarie, lezioniVerifica: 0, overflow };
+    righe.push(riga);
 
-  let html = '';
-  for(let w=0; w<nGiorni; w++){
-    if(!elenco[w].length) continue;
-    html += `<p style="font-size:13px;margin:12px 0 0"><strong>${GG[w]}</strong> (${persi[w]})</p><ul class="det">`
-          + elenco[w].map(x=>`<li>${x}</li>`).join('') + '</ul>';
-  }
-  document.getElementById('dettaglio').innerHTML = html;
-  document.getElementById('out').classList.remove('hidden');
+    // verifiche del modulo: prima quelle a data automatica (collocate qui, in ordine),
+    // che spingono in avanti il modulo successivo.
+    (m.verifiche||[]).forEach(v => {
+      const attiva = v.attiva !== false;
+      const durata = Math.max(1, Number(v.durataLezioni)||1);
+      const occupano = attiva && v.occupaLezioni !== false;
+      let indici = [];
+      let fuori = false;
+      let motivo = null;
+
+      if(v.data){
+        const r = riservaDaData(v.data, durata);
+        indici = r.indici; fuori = r.fuori; motivo = r.motivo;
+      } else {
+        let count = 0;
+        for(let i = ultimoIdx + 1; i < lezioni.length && count < durata; i++){
+          if(riservate[i]) continue;
+          indici.push(i); count++;
+          if(occupano) riservate[i] = true;
+        }
+        fuori = indici.length < durata;
+        if(fuori) motivo = 'spazio-dopo-modulo';
+        if(indici.length) ultimoIdx = Math.max(ultimoIdx, indici[indici.length-1]);
+        // dopo una verifica automatica, il cursore dei moduli riparte da lì
+        cursore = Math.max(cursore, (indici.length ? indici[indici.length-1] : ultimoIdx) + 1);
+      }
+
+      // Conta come "occupate" solo le lezioni effettivamente collocate;
+      // le lezioni volute ma non collocabili (fuori periodo) diventano overflow.
+      if(occupano){
+        riga.lezioniVerifica += indici.length;
+        const mancanti = durata - indici.length;
+        if(mancanti > 0) overflowTotale += mancanti;
+      }
+      if(indici.length){
+        const ultimaData = lezioni[indici[indici.length-1]];
+        if(ultimaData > riga.dataFineTotale) riga.dataFineTotale = ultimaData;
+      }
+      verifichePianificate.push({
+        verifica: v,
+        modulo: m,
+        etichetta: etichettaVerifica(v, m, piano),
+        date: indici.map(i => lezioni[i]),
+        attiva,
+        dataAutomatica: !v.data,
+        fuoriPeriodo: fuori,
+        motivoProblema: motivo
+      });
+    });
+  });
+
+  return { lezioni, righe, verifiche: verifichePianificate, overflowTotale, lezioniUsate: cursore, lezioniTotali: lezioni.length };
 }
 
-/* avvio */
-generaAnno();
+// ---------- Rendering ----------
+
+function render(){
+  renderSidebar();
+  renderMain();
+}
+
+function renderSidebar(){
+  const cont = document.getElementById('lista-tab');
+  cont.innerHTML = '';
+  stato.piani.forEach(p => {
+    const tab = document.createElement('div');
+    tab.className = 'tab-piano' + (p.id===stato.pianoAttivo ? ' attivo':'');
+    tab.innerHTML = `<span>${escapeHtml(p.nome)}</span><span class="elimina-tab" title="Elimina">✕</span>`;
+    tab.addEventListener('click', ()=>{ stato.pianoAttivo = p.id; salvaDati(); render(); });
+    tab.querySelector('.elimina-tab').addEventListener('click', (ev)=>eliminaPiano(p.id, ev));
+    cont.appendChild(tab);
+  });
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML;
+}
+
+function catturaStatoPannelli(){
+  const ids = ['pannello-impostazioni','pannello-moduli','pannello-eccezioni'];
+  const stato = {};
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) stato[id] = el.open;
+  });
+  return stato;
+}
+function ripristinaStatoPannelli(stato){
+  Object.keys(stato).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.open = stato[id];
+  });
+}
+
+function renderMain(){
+  const main = document.getElementById('main');
+  const statoPannelliPrecedente = catturaStatoPannelli();
+  const piano = pianoCorrente();
+  if(!piano){
+    main.innerHTML = `<div class="vuoto">
+      <h2>Nessun piano ancora</h2>
+      <div>Crea il tuo primo piano per una classe/materia: aggiungi i moduli e le date, il resto è automatico.</div>
+      <button id="btn-vuoto-nuovo">+ crea il primo piano</button>
+    </div>`;
+    document.getElementById('btn-vuoto-nuovo').addEventListener('click', nuovoPiano);
+    return;
+  }
+
+  const calcolo = calcolaPianificazione(piano);
+
+  main.innerHTML = `
+    <div class="intestazione-piano">
+      <input type="text" id="input-nome-piano" value="${escapeHtml(piano.nome)}">
+    </div>
+    <div class="riga-etichetta">
+      <select id="sel-anno">
+        <option value="">anno</option>
+        ${[3,4,5].map(a=>`<option value="${a}" ${piano.anno==a?'selected':''}>${a}ª</option>`).join('')}
+      </select>
+      <select id="sel-sezione">
+        <option value="">sez.</option>
+        ${LETTERE.map(l=>`<option value="${l}" ${piano.sezione===l?'selected':''}>${l}</option>`).join('')}
+      </select>
+      <select id="sel-materia">
+        <option value="">materia</option>
+        ${MATERIE.map(m=>`<option value="${m}" ${piano.materia===m?'selected':''}>${m}</option>`).join('')}
+      </select>
+      <span class="nota-etichetta">compongono il nome del piano; puoi comunque scriverlo a mano sopra</span>
+    </div>
+    <div class="sotto-intestazione">${formattaDataBreve(piano.dataInizio)} → ${formattaDataBreve(piano.dataFine)} &middot; ${calcolo.lezioniTotali} lezioni disponibili nel periodo</div>
+
+    <details class="pannello" id="pannello-impostazioni">
+      <summary>Impostazioni del piano</summary>
+      <div class="riga-campi">
+        <div class="campo">
+          <label>Inizio</label>
+          <input type="date" id="input-data-inizio" value="${piano.dataInizio}">
+        </div>
+        <div class="campo">
+          <label>Fine</label>
+          <input type="date" id="input-data-fine" value="${piano.dataFine}">
+        </div>
+        <div class="campo">
+          <label>Fine del primo quadrimestre</label>
+          <input type="date" id="input-fine-quadri" value="${piano.fineQuadrimestre || defaultFineQuadrimestre(piano)}">
+        </div>
+        <div class="campo">
+          <label>Giorni di lezione nella settimana</label>
+          <div class="giorni-settimana" id="giorni-settimana"></div>
+        </div>
+      </div>
+      <div class="campo" style="margin-top:6px;">
+        <label>Periodi di vacanza / sospensione didattica</label>
+        <div class="riga-precompila">
+          <span>Anno scolastico</span>
+          <input type="number" id="feste-anno" value="${stato.festeConfig.anno}" min="2000" max="2100">
+          <span class="sep">/${Number(stato.festeConfig.anno)+1}</span>
+          <span>patrono</span>
+          <input type="text" id="feste-patrono" value="${escapeHtml(stato.festeConfig.nome)}">
+          <input type="number" id="feste-giorno" value="${stato.festeConfig.giorno}" min="1" max="31" title="giorno">
+          <input type="number" id="feste-mese" value="${stato.festeConfig.mese}" min="1" max="12" title="mese">
+          <button class="btn-precompila" id="btn-precompila-festivita">Precompila festività</button>
+          <label class="chk"><input type="checkbox" id="feste-tutti"> tutte le classi</label>
+        </div>
+        <div class="nota-precompila">Calcola da sé Pasqua, martedì grasso, feste nazionali, Sa die e patrono. I periodi che aggiungi a mano (ponti del collegio) non vengono toccati.</div>
+        <div id="lista-festivita" class="lista-eccezioni"></div>
+        <button class="btn-aggiungi" id="btn-aggiungi-festivita">+ aggiungi periodo di vacanza</button>
+      </div>
+    </details>
+
+    <details class="pannello" open id="pannello-moduli">
+      <summary>Moduli</summary>
+      <table class="tabella-moduli">
+        <thead><tr>
+          <th style="width:36px"></th>
+          <th>Modulo</th>
+          <th style="width:110px">Lezioni previste</th>
+          <th style="width:150px">Totale con verifiche</th>
+          <th style="width:130px">Date pianificate</th>
+          <th style="width:60px"></th>
+        </tr></thead>
+        <tbody id="corpo-tabella-moduli"></tbody>
+      </table>
+      <button class="btn-aggiungi" id="btn-aggiungi-modulo">+ aggiungi modulo</button>
+      ${stato.piani.length > 1 ? `
+      <div class="riga-precompila">
+        <span>Copia i moduli da</span>
+        <select id="sel-copia-da">
+          <option value="">scegli un piano…</option>
+          ${stato.piani.filter(p => p.id !== piano.id).map(p => `<option value="${p.id}">${escapeHtml(p.nome)} (${p.moduli.length})</option>`).join('')}
+        </select>
+        <label class="chk"><input type="checkbox" id="copia-con-verifiche"> con le verifiche</label>
+        <label class="chk"><input type="checkbox" id="copia-sostituisci"> sostituisci i moduli attuali</label>
+        <button class="btn-precompila" id="btn-copia-moduli">Copia</button>
+      </div>` : ''}
+      <details class="blocco-incolla" id="blocco-incolla">
+        <summary>Incolla un elenco di moduli</summary>
+        <div class="nota-precompila">Uno per riga. Trattini e numerazione vengono ripuliti da soli. Per indicare le lezioni scrivi il numero dopo una barra verticale: <em>Aristotele | 6</em></div>
+        <textarea id="testo-moduli" rows="8" placeholder="Il problema della natura nei presocratici&#10;Socrate e i sofisti | 5&#10;Platone | 8"></textarea>
+        <div class="riga-precompila">
+          <span>Lezioni per modulo se non indicate</span>
+          <input type="number" id="lezioni-default" value="4" min="1" max="60">
+          <button class="btn-precompila" id="btn-importa-moduli">Aggiungi come moduli</button>
+          <label class="chk"><input type="checkbox" id="sostituisci-moduli"> sostituisci i moduli esistenti</label>
+        </div>
+      </details>
+    </details>
+
+    <details class="pannello" id="pannello-eccezioni">
+      <summary>Lezioni saltate / lezioni extra</summary>
+      <div class="sotto-intestazione" style="margin-bottom:12px;">Clicca un giorno di lezione nel calendario per segnarlo come saltato (assemblea, sciopero, gita...). Clicca un giorno che normalmente non è di lezione per aggiungerlo come lezione extra (recupero).</div>
+      <div class="mini-calendario" id="mini-calendario"></div>
+      <div class="legenda-cal">
+        <span><i style="background:rgba(31,92,86,0.12)"></i>lezione regolare</span>
+        <span><i style="background:var(--ruggine)"></i>saltata</span>
+        <span><i style="background:var(--oliva)"></i>extra / recupero</span>
+        <span><i style="background:var(--ambra)"></i>verifica</span>
+      </div>
+    </details>
+
+    <div class="pannello gantt-wrap" id="pannello-diagramma"></div>
+  `;
+
+  ripristinaStatoPannelli(statoPannelliPrecedente);
+
+  // eventi impostazioni
+  document.getElementById('input-nome-piano').addEventListener('input', e=>{ piano.nome=e.target.value; salvaDati(); renderSidebar(); });
+  function aggiornaEtichetta(){
+    const parti = [];
+    if(piano.anno && piano.sezione) parti.push(piano.anno + piano.sezione);
+    else if(piano.anno) parti.push(piano.anno + 'ª');
+    else if(piano.sezione) parti.push(piano.sezione);
+    if(piano.materia) parti.push(piano.materia);
+    if(parti.length){
+      piano.nome = parti.join(' ');
+      document.getElementById('input-nome-piano').value = piano.nome;
+    }
+    salvaDati(); renderSidebar();
+  }
+  document.getElementById('sel-anno').addEventListener('change', e=>{ piano.anno=e.target.value; aggiornaEtichetta(); });
+  document.getElementById('sel-sezione').addEventListener('change', e=>{ piano.sezione=e.target.value; aggiornaEtichetta(); });
+  document.getElementById('sel-materia').addEventListener('change', e=>{ piano.materia=e.target.value; aggiornaEtichetta(); });
+  document.getElementById('input-data-inizio').addEventListener('change', e=>{ piano.dataInizio=e.target.value; salvaDati(); render(); });
+  document.getElementById('input-fine-quadri').addEventListener('change', e=>{ piano.fineQuadrimestre=e.target.value; salvaDati(); render(); });
+  document.getElementById('input-data-fine').addEventListener('change', e=>{ piano.dataFine=e.target.value; salvaDati(); render(); });
+
+  const contGiorni = document.getElementById('giorni-settimana');
+  GIORNI_LABEL.forEach((lbl, idx)=>{
+    const chip = document.createElement('div');
+    chip.className = 'giorno-chip' + (piano.giorni.includes(idx) ? ' attivo':'');
+    chip.textContent = lbl;
+    chip.addEventListener('click', ()=>{
+      if(piano.giorni.includes(idx)) piano.giorni = piano.giorni.filter(g=>g!==idx);
+      else piano.giorni.push(idx);
+      salvaDati(); render();
+    });
+    contGiorni.appendChild(chip);
+  });
+
+  renderFestivita(piano);
+  document.getElementById('btn-precompila-festivita').addEventListener('click', ()=>{
+    const anno = parseInt(document.getElementById('feste-anno').value);
+    if(isNaN(anno)){ alert('Indica l\'anno di partenza (per il 2026/27 scrivi 2026).'); return; }
+    const patrono = {
+      nome: document.getElementById('feste-patrono').value.trim(),
+      giorno: document.getElementById('feste-giorno').value,
+      mese: document.getElementById('feste-mese').value
+    };
+    stato.festeConfig = { anno: anno, nome: patrono.nome, giorno: patrono.giorno, mese: patrono.mese };
+    const tutti = document.getElementById('feste-tutti').checked;
+    const bersagli = tutti ? stato.piani : [piano];
+    bersagli.forEach(p => precompilaFestivitaPiano(p, anno, patrono));
+    salvaDati(); render();
+    mostraNotaBackup(tutti
+      ? 'Festività ' + anno + '/' + (anno+1) + ' inserite in tutte le classi.'
+      : 'Festività ' + anno + '/' + (anno+1) + ' inserite in questa classe.', 'ok');
+  });
+  document.getElementById('btn-aggiungi-festivita').addEventListener('click', ()=>{
+    piano.festivita.push({ da: piano.dataInizio, a: piano.dataInizio, etichetta:'Vacanza' });
+    salvaDati(); render();
+  });
+
+  renderTabellaModuli(piano);
+  const btnCopiaModuli = document.getElementById('btn-copia-moduli');
+  if(btnCopiaModuli) btnCopiaModuli.addEventListener('click', ()=>{
+    const idOrigine = document.getElementById('sel-copia-da').value;
+    const origine = stato.piani.find(p => p.id === idOrigine);
+    if(!origine){ alert('Scegli il piano da cui copiare.'); return; }
+    const conVerifiche = document.getElementById('copia-con-verifiche').checked;
+    const sostituisci = document.getElementById('copia-sostituisci').checked;
+    // mappa vecchio id -> nuovo id, per non perdere i collegamenti delle verifiche
+    const mappa = {};
+    const copiati = origine.moduli.map(m => {
+      const nuovoId = idCasuale();
+      mappa[m.id] = nuovoId;
+      return { id: nuovoId, nome: m.nome, lezioni: m.lezioni, verifiche: [], _vecchie: m.verifiche || [] };
+    });
+    if(conVerifiche){
+      copiati.forEach(m => {
+        m.verifiche = m._vecchie.map(v => ({
+          id: idCasuale(),
+          tipo: v.tipo, qualifica: v.qualifica,
+          durataLezioni: v.durataLezioni,
+          attiva: v.attiva !== false,
+          data: '',
+          moduli: (v.moduli || []).map(x => mappa[x]).filter(Boolean)
+        }));
+      });
+    }
+    copiati.forEach(m => delete m._vecchie);
+    if(sostituisci){
+      if(!confirm('Sostituisco i ' + piano.moduli.length + ' moduli di questa classe con i ' + copiati.length + ' di ' + origine.nome + '?')) return;
+      piano.moduli = copiati;
+    } else {
+      piano.moduli = piano.moduli.concat(copiati);
+    }
+    salvaDati(); render();
+    mostraNotaBackup(copiati.length + ' moduli copiati da ' + origine.nome + (conVerifiche ? ' con le verifiche.' : '.'), 'ok');
+  });
+  document.getElementById('btn-importa-moduli').addEventListener('click', ()=>{
+    const testo = document.getElementById('testo-moduli').value;
+    const def = parseInt(document.getElementById('lezioni-default').value) || 4;
+    const nuovi = testo.split('\n')
+      .map(r => r.replace(/^[\s\u2022\-\u2013\u2014*]+/, '').replace(/^\d+[.)\]]\s*/, '').trim())
+      .filter(r => r.length > 0)
+      .map(r => {
+        const parti = r.split('|');
+        const nome = parti[0].trim();
+        const n = parti.length > 1 ? parseInt(parti[1]) : NaN;
+        return { id: idCasuale(), nome: nome, lezioni: isNaN(n) ? def : n, verifiche: [] };
+      });
+    if(!nuovi.length){ alert('Non ho trovato righe da importare.'); return; }
+    if(document.getElementById('sostituisci-moduli').checked){
+      if(!confirm('Sostituisco i ' + piano.moduli.length + ' moduli esistenti di questa classe con i ' + nuovi.length + ' nuovi? Le verifiche collegate ai vecchi moduli andranno perse.')) return;
+      piano.moduli = nuovi;
+    } else {
+      piano.moduli = piano.moduli.concat(nuovi);
+    }
+    document.getElementById('testo-moduli').value = '';
+    salvaDati(); render();
+    mostraNotaBackup(nuovi.length + ' moduli inseriti.', 'ok');
+  });
+  document.getElementById('btn-aggiungi-modulo').addEventListener('click', ()=>{
+    piano.moduli.push({ id: idCasuale(), nome:'Nuovo modulo', lezioni:4, verifiche: [] });
+    salvaDati(); render();
+  });
+
+  renderMiniCalendario(piano, calcolo);
+  renderPannelloDiagramma(piano, calcolo);
+}
+
+// ---------- Esportazione crono programma in RTF (Word, Pages, TextEdit) ----------
+
+function rtfEscape(s){
+  return String(s==null?'':s)
+    .replace(/\\/g,'\\\\')
+    .replace(/\{/g,'\\{')
+    .replace(/\}/g,'\\}')
+    .replace(/[\u0080-\uffff]/g, c => '\\u' + c.charCodeAt(0) + '?');
+}
+
+function esportaCronoProgrammaWord(piano, calcolo){
+  // larghezze colonne in twips (1440 twips = 1 pollice)
+  const larghezze = [2900, 1400, 1400, 1100, 3200];
+
+  function rigaTabella(celle, grassetto, larghezzeRiga){
+    const ws = larghezzeRiga || larghezze;
+    let cumR = 0;
+    const cellxR = ws.map(w => (cumR += w));
+    let r = '\\trowd\\trgaph108\\trleft0';
+    cellxR.forEach(x => r += '\\cellx' + x);
+    r += '\n\\intbl ';
+    celle.forEach(c => {
+      r += (grassetto ? '\\b ' : '') + rtfEscape(c) + (grassetto ? '\\b0' : '') + '\\cell ';
+    });
+    r += '\\row\n';
+    return r;
+  }
+
+  let rtf = '{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1040{\\fonttbl{\\f0\\fswiss\\fcharset0 Calibri;}}\n';
+  rtf += '\\f0\\fs22\n';
+  rtf += '{\\pard\\b\\fs32 Crono programma \\emdash ' + rtfEscape(piano.nome) + '\\par}\n';
+  rtf += '{\\pard\\fs18\\sa240 Periodo: ' + rtfEscape(formattaDataBreve(piano.dataInizio)) + ' \\endash ' + rtfEscape(formattaDataBreve(piano.dataFine)) + '   \\emdash   ' + calcolo.lezioniTotali + ' lezioni disponibili nel periodo\\par}\n';
+  rtf += rigaTabella(['Modulo','Lezioni spiegazione','Lezioni verifica','Totale','Periodo previsto'], true);
+  calcolo.righe.forEach((r, i)=>{
+    rtf += rigaTabella([
+      (i+1) + '. ' + r.modulo.nome,
+      String(r.lezioniPreviste),
+      r.lezioniVerifica > 0 ? String(r.lezioniVerifica) : '\u2013',
+      String(r.lezioniPreviste + r.lezioniVerifica),
+      formattaDataBreve(r.dataInizio) + ' \u2013 ' + formattaDataBreve(r.dataFineTotale) + (r.overflow ? ' (lezioni insufficienti)' : '')
+    ]);
+  });
+
+  if((calcolo.verifiche||[]).length > 0){
+    const verificheOrdinate = calcolo.verifiche.slice()
+      .filter(pv => pv.attiva && pv.date.length > 0)
+      .sort((a,b)=> a.date[0].localeCompare(b.date[0]));
+    if(verificheOrdinate.length > 0){
+      rtf += '\\pard\\par\n';
+      rtf += '{\\pard\\b\\fs26\\sb240 Calendario verifiche\\par}\n';
+      rtf += '{\\pard\\sa120\\fs18 Le date potranno subire lievi variazioni in base allo svolgimento effettivo del programma.\\par}\n';
+      const larghezzeVerifiche = [3600, 2200, 4200];
+      rtf += rigaTabella(['Modulo','Tipo','Data / periodo'], true, larghezzeVerifiche);
+      verificheOrdinate.forEach(pv=>{
+        const tipo = (pv.verifica.tipo==='orale'?'Orale':'Scritta') + (pv.verifica.qualifica==='recupero'?' (recupero)':'');
+        rtf += rigaTabella([
+          piano.moduli.reduce((acc, mm, k) => {
+            const inclusi = mm.id === pv.modulo.id || (pv.verifica.moduli||[]).includes(mm.id);
+            return inclusi ? acc.concat((k+1) + '. ' + mm.nome) : acc;
+          }, []).join('  '),
+          tipo,
+          formattaDataBreve(pv.date[0]) + (pv.date.length>1 ? ' \u2013 ' + formattaDataBreve(pv.date[pv.date.length-1]) : '')
+        ], false, larghezzeVerifiche);
+      });
+    }
+  }
+
+  {
+    const r = riepilogoVerifiche(piano, calcolo);
+    rtf += '{\\pard\\b\\fs26\\sb240 Riepilogo delle verifiche\\par}\n';
+    const larghezzeRiep = [4200, 1300, 1500, 1300, 1600];
+    rtf += rigaTabella(['Periodo','Totale','Scritte','Orali','Lezioni impiegate'], true, larghezzeRiep);
+    const riga = (nome, d) => rigaTabella([nome, String(d.totale), String(d.scritte), String(d.orali), String(d.lezioni)], false, larghezzeRiep);
+    rtf += riga('Primo quadrimestre (fino al ' + formattaDataBreve(r.limite) + ')', r.primo);
+    rtf += riga('Secondo quadrimestre', r.secondo);
+    rtf += riga('Totale anno', r.totale);
+    if(r.totale.recuperi > 0){
+      rtf += '{\\pard\\sa120\\fs18 Di cui verifiche di recupero: ' + r.totale.recuperi + '.\\par}\n';
+    }
+  }
+
+  rtf += '\\pard\\par}';
+
+  const blob = new Blob([rtf], { type: 'application/rtf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const nomeFile = piano.nome.replace(/[^a-z0-9àèéìòù ]/gi,'').trim().replace(/\s+/g,'_') || 'piano';
+  a.download = nomeFile + '_crono_programma.rtf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function formattaDataBreve(iso){
+  if(!iso) return '';
+  const d = parseISO(iso);
+  return String(d.getDate()).padStart(2,'0') + ' ' + MESI_LABEL[d.getMonth()].slice(0,3) + ' ' + d.getFullYear();
+}
+
+function renderFestivita(piano){
+  const cont = document.getElementById('lista-festivita');
+  cont.innerHTML = '';
+  piano.festivita.forEach((f, i)=>{
+    const riga = document.createElement('div');
+    riga.className = 'riga-eccezione';
+    riga.innerHTML = `
+      <input type="text" value="${escapeHtml(f.etichetta)}" data-campo="etichetta">
+      <input type="date" value="${f.da}" data-campo="da">
+      <span>→</span>
+      <input type="date" value="${f.a}" data-campo="a">
+      <button class="azione-icona elimina" title="Rimuovi">✕</button>
+    `;
+    riga.querySelector('[data-campo=etichetta]').addEventListener('input', e=>{ f.etichetta=e.target.value; salvaDati(); });
+    riga.querySelector('[data-campo=da]').addEventListener('change', e=>{ f.da=e.target.value; salvaDati(); renderGanttOnly(); });
+    riga.querySelector('[data-campo=a]').addEventListener('change', e=>{ f.a=e.target.value; salvaDati(); renderGanttOnly(); });
+    riga.querySelector('.elimina').addEventListener('click', ()=>{ piano.festivita.splice(i,1); salvaDati(); render(); });
+    cont.appendChild(riga);
+  });
+}
+
+if(!window._chiudiPannelliModuli){
+  window._chiudiPannelliModuli = true;
+  document.addEventListener('click', ()=>{
+    document.querySelectorAll('.pannello-moduli-verifica').forEach(x => x.hidden = true);
+  });
+}
+function renderTabellaModuli(piano){
+  const corpo = document.getElementById('corpo-tabella-moduli');
+  corpo.innerHTML = '';
+  const calcolo = calcolaPianificazione(piano);
+  piano.moduli.forEach((m, i)=>{
+    const riga = calcolo.righe[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <button class="azione-icona" data-azione="su" title="Sposta su">↑</button>
+        <button class="azione-icona" data-azione="giu" title="Sposta giù">↓</button>
+      </td>
+      <td><span class="numero-modulo">${i+1}</span><input type="text" value="${escapeHtml(m.nome)}" data-campo="nome" class="input-nome-modulo"></td>
+      <td><input type="number" min="1" value="${m.lezioni}" data-campo="lezioni"></td>
+      <td style="font-size:0.8rem; color:var(--inchiostro-tenue); white-space:nowrap;">
+        ${riga.lezioniVerifica > 0
+          ? `${riga.lezioniPreviste} spieg. + <span style="color:var(--ambra); font-weight:600;">${riga.lezioniVerifica} verif.</span> = <b style="color:var(--inchiostro);">${riga.lezioniPreviste + riga.lezioniVerifica}</b>`
+          : `${riga.lezioniPreviste}`}
+      </td>
+      <td style="font-size:0.78rem; color:${riga.overflow?'var(--ruggine)':'var(--inchiostro-tenue)'};">
+        ${formattaDataBreve(riga.dataInizio)} – ${formattaDataBreve(riga.dataFineTotale)}${riga.dataFineTotale !== riga.dataFine ? '<span class="nota-verifica">verifica inclusa</span>' : ''}${riga.overflow ? ' ⚠︎':''}
+      </td>
+      <td><button class="azione-icona elimina" data-azione="elimina" title="Elimina modulo">✕</button></td>
+    `;
+    tr.querySelector('[data-campo=nome]').addEventListener('input', e=>{ m.nome=e.target.value; salvaDati(); renderGanttOnly(); });
+    tr.querySelector('[data-campo=lezioni]').addEventListener('input', e=>{ m.lezioni = Math.max(1, parseInt(e.target.value)||1); salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+    tr.querySelector('[data-azione=elimina]').addEventListener('click', ()=>{ piano.moduli.splice(i,1); salvaDati(); render(); });
+    tr.querySelector('[data-azione=su]').addEventListener('click', ()=>{ if(i>0){ [piano.moduli[i-1],piano.moduli[i]]=[piano.moduli[i],piano.moduli[i-1]]; salvaDati(); render(); } });
+    tr.querySelector('[data-azione=giu]').addEventListener('click', ()=>{ if(i<piano.moduli.length-1){ [piano.moduli[i+1],piano.moduli[i]]=[piano.moduli[i],piano.moduli[i+1]]; salvaDati(); render(); } });
+    corpo.appendChild(tr);
+
+    // sotto-riga: verifiche del modulo
+    const trV = document.createElement('tr');
+    trV.className = 'riga-verifiche-modulo';
+    const td = document.createElement('td');
+    td.colSpan = 6;
+    (m.verifiche||[]).forEach((v, j)=>{
+      const pianificata = calcolo.verifiche.find(pv => pv.verifica === v);
+      const dataProposta = pianificata && pianificata.date.length ? pianificata.date[0] : '';
+      const dataPropostaFine = pianificata && pianificata.date.length ? pianificata.date[pianificata.date.length-1] : '';
+      const intervalloProposto = dataProposta
+        ? formattaDataBreve(dataProposta) + (dataPropostaFine && dataPropostaFine !== dataProposta ? ' – ' + formattaDataBreve(dataPropostaFine) : '')
+        : '—';
+      const attiva = v.attiva !== false;
+      const rigaV = document.createElement('div');
+      rigaV.className = 'riga-verifica-inline' + (attiva ? '' : ' non-attiva');
+      rigaV.innerHTML = `
+        <label class="mini-label check-prevista" title="Se disattivi, la verifica resta nell'elenco ma non occupa lezioni e sparisce da calendario, diagramma e report">
+          <input type="checkbox" data-campo="attiva" ${attiva?'checked':''}> prevista
+        </label>
+        <span class="badge-verifica">✎</span>
+        <span class="moduli-verifica">
+          <button class="btn-moduli-verifica" data-azione="moduli" title="Su quali moduli verte questa verifica">${escapeHtml(moduliDellaVerifica(v, m, piano).join(', '))} ▾</button>
+          <span class="pannello-moduli-verifica" hidden>
+            ${piano.moduli.map((mm, k) => `<label class="riga-modulo-verifica"><input type="checkbox" value="${mm.id}" ${mm.id===m.id?'checked disabled':''} ${(v.moduli||[]).includes(mm.id)?'checked':''}> ${k+1}. ${escapeHtml(mm.nome)}</label>`).join('')}
+          </span>
+        </span>
+        <select data-campo="tipo">
+          <option value="scritta" ${v.tipo!=='orale'?'selected':''}>Scritta</option>
+          <option value="orale" ${v.tipo==='orale'?'selected':''}>Orale</option>
+        </select>
+        <select data-campo="qualifica">
+          <option value="sommativa" ${v.qualifica!=='recupero'?'selected':''}>Sommativa</option>
+          <option value="recupero" ${v.qualifica==='recupero'?'selected':''}>Recupero</option>
+        </select>
+        <label class="mini-label" title="Su quante lezioni si svolge: 1 per una scritta, di più per un'orale su più giorni">su
+          <input type="number" min="1" value="${Math.max(1, Number(v.durataLezioni)||1)}" data-campo="durata"> lez.
+        </label>
+        <label class="mini-label" title="Data della verifica. Vuota = automatica (subito dopo il modulo, segue il modulo se slitta). Scegliendo una data la fissi.">data
+          <input type="date" data-campo="data" value="${v.data || ''}" min="${piano.dataInizio}" max="${piano.dataFine}">
+        </label>
+        ${v.data
+          ? `${dataPropostaFine && dataPropostaFine !== v.data ? `<span class="tag-auto" title="Fine della verifica, calcolata sulle lezioni indicate">fino al ${formattaDataBreve(dataPropostaFine)}</span>` : ''}<button class="link-auto" data-azione="auto" title="Torna alla data automatica">↺ auto</button>`
+          : `<span class="tag-auto" title="Data proposta automaticamente dopo il modulo">auto: ${intervalloProposto}</span>`}
+        ${pianificata && pianificata.fuoriPeriodo ? '<span class="avviso-inline" title="'+messaggioProblemaVerifica(pianificata.motivoProblema, true)+'">⚠︎ '+messaggioProblemaVerifica(pianificata.motivoProblema, false)+'</span>' : ''}
+        <button class="azione-icona elimina" title="Rimuovi verifica">✕</button>
+      `;
+      const btnModuli = rigaV.querySelector('[data-azione=moduli]');
+      const panModuli = rigaV.querySelector('.pannello-moduli-verifica');
+      btnModuli.addEventListener('click', e=>{
+        e.stopPropagation();
+        const apriamo = panModuli.hidden;
+        document.querySelectorAll('.pannello-moduli-verifica').forEach(x => x.hidden = true);
+        panModuli.hidden = !apriamo;
+      });
+      panModuli.addEventListener('click', e=> e.stopPropagation());
+      panModuli.addEventListener('change', e=>{
+        if(e.target.tagName !== 'INPUT') return;
+        const sel = [...panModuli.querySelectorAll('input:checked:not(:disabled)')].map(i=>i.value);
+        v.moduli = sel;
+        salvaDati();
+        btnModuli.textContent = moduliDellaVerifica(v, m, piano).join(', ') + ' ▾';
+        renderGanttOnly();
+      });
+      rigaV.querySelector('[data-campo=attiva]').addEventListener('change', e=>{ v.attiva = e.target.checked; salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+      rigaV.querySelector('[data-campo=tipo]').addEventListener('change', e=>{
+        v.tipo = e.target.value;
+        if(v.tipo==='orale' && (!v.durataLezioni || v.durataLezioni < 2)) v.durataLezioni = 3;
+        if(v.tipo==='scritta') v.durataLezioni = 1;
+        salvaDati(); renderTabellaModuli(piano); renderGanttOnly();
+      });
+      rigaV.querySelector('[data-campo=qualifica]').addEventListener('change', e=>{
+        v.qualifica = e.target.value;
+        if(v.qualifica==='recupero' && v.attiva===undefined) v.attiva = true;
+        salvaDati(); renderTabellaModuli(piano); renderGanttOnly();
+      });
+      rigaV.querySelector('[data-campo=durata]').addEventListener('input', e=>{ v.durataLezioni = Math.max(1, parseInt(e.target.value)||1); salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+      rigaV.querySelector('[data-campo=data]').addEventListener('change', e=>{ v.data = e.target.value || null; salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+      const btnAuto = rigaV.querySelector('[data-azione=auto]');
+      if(btnAuto) btnAuto.addEventListener('click', ()=>{ v.data = null; salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+      rigaV.querySelector('.elimina').addEventListener('click', ()=>{ m.verifiche.splice(j,1); salvaDati(); renderTabellaModuli(piano); renderGanttOnly(); });
+      td.appendChild(rigaV);
+    });
+    const btnV = document.createElement('button');
+    btnV.className = 'btn-aggiungi-verifica-inline';
+    btnV.textContent = '+ verifica';
+    btnV.title = 'Aggiungi una verifica a questo modulo';
+    btnV.addEventListener('click', ()=>{
+      m.verifiche.push({ id: idCasuale(), tipo:'scritta', qualifica:'sommativa', durataLezioni:1, data:null, attiva:true, occupaLezioni:true });
+      salvaDati(); renderTabellaModuli(piano); renderGanttOnly();
+    });
+    td.appendChild(btnV);
+    trV.appendChild(td);
+    corpo.appendChild(trV);
+  });
+}
+
+
+function renderMiniCalendario(piano, calcolo){
+  const cont = document.getElementById('mini-calendario');
+  cont.innerHTML = '';
+  if(!piano.dataInizio || !piano.dataFine){ return; }
+  const wrap = document.createElement('div');
+  wrap.className = 'mesi-calendario';
+  const lezioniSet = new Set(calcolo.lezioni);
+  const saltateMap = {}; const extraMap = {};
+  piano.eccezioni.forEach(e=>{ if(e.tipo==='saltata') saltateMap[e.data]=true; if(e.tipo==='extra') extraMap[e.data]=true; });
+  const verificheMap = {};
+  (calcolo.verifiche||[]).forEach(pv => { if(pv.attiva) pv.date.forEach(iso => { verificheMap[iso] = pv; }); });
+
+  let cursore = new Date(parseISO(piano.dataInizio).getFullYear(), parseISO(piano.dataInizio).getMonth(), 1);
+  const fine = parseISO(piano.dataFine);
+  let guardia = 0;
+  while(cursore <= fine && guardia < 36){
+    guardia++;
+    const meseDiv = document.createElement('div');
+    meseDiv.className = 'mese-cal';
+    const titolo = document.createElement('div');
+    titolo.className = 'titolo-mese';
+    titolo.textContent = MESI_LABEL[cursore.getMonth()] + ' ' + cursore.getFullYear();
+    meseDiv.appendChild(titolo);
+    const griglia = document.createElement('div');
+    griglia.className = 'griglia-giorni';
+    const primoDelMese = new Date(cursore.getFullYear(), cursore.getMonth(), 1);
+    const offset = giornoSettimanaLunBase(primoDelMese);
+    for(let v=0; v<offset; v++){
+      const vuota = document.createElement('div'); vuota.className='giorno-cella vuota'; griglia.appendChild(vuota);
+    }
+    const giorniNelMese = new Date(cursore.getFullYear(), cursore.getMonth()+1, 0).getDate();
+    for(let g=1; g<=giorniNelMese; g++){
+      const d = new Date(cursore.getFullYear(), cursore.getMonth(), g);
+      const iso = toISO(d);
+      const cella = document.createElement('div');
+      const verificaQui = verificheMap[iso];
+      let cls = 'giorno-cella';
+      if(verificaQui) cls += ' verifica';
+      else if(saltateMap[iso]) cls += ' saltata';
+      else if(extraMap[iso]) cls += ' extra';
+      else if(lezioniSet.has(iso)) cls += ' lezione';
+      cella.className = cls;
+      cella.textContent = g;
+      cella.title = verificaQui ? verificaQui.etichetta : iso;
+      if(verificaQui){
+        // la data della verifica deriva dal modulo: si sposta da sola se il modulo slitta.
+        // Per segnare il giorno come saltato (es. sciopero proprio quel giorno), clic: diventa saltata e la verifica scorre avanti.
+        cella.addEventListener('click', ()=> toggleGiornoCalendario(piano, iso, true, false, false));
+      } else if(iso >= piano.dataInizio && iso <= piano.dataFine){
+        cella.addEventListener('click', ()=> toggleGiornoCalendario(piano, iso, lezioniSet.has(iso) || saltateMap[iso] || extraMap[iso], saltateMap[iso], extraMap[iso]));
+      } else {
+        cella.style.opacity = '0.3';
+      }
+      griglia.appendChild(cella);
+    }
+    meseDiv.appendChild(griglia);
+    wrap.appendChild(meseDiv);
+    cursore.setMonth(cursore.getMonth()+1);
+  }
+  cont.appendChild(wrap);
+}
+
+function toggleGiornoCalendario(piano, iso, eraLezioneOEccezione, eraSaltata, eraExtra){
+  // ciclo di stato per il giorno cliccato:
+  // lezione regolare -> saltata -> regolare
+  // giorno non di lezione -> extra -> non di lezione
+  const gg = giornoSettimanaLunBase(parseISO(iso));
+  const regolare = piano.giorni.includes(gg) && !inFestivita(iso, piano.festivita);
+
+  if(eraSaltata){
+    piano.eccezioni = piano.eccezioni.filter(e => !(e.data===iso && e.tipo==='saltata'));
+  } else if(eraExtra){
+    piano.eccezioni = piano.eccezioni.filter(e => !(e.data===iso && e.tipo==='extra'));
+  } else if(regolare){
+    piano.eccezioni.push({ data: iso, tipo:'saltata', etichetta:'' });
+  } else {
+    piano.eccezioni.push({ data: iso, tipo:'extra', etichetta:'' });
+  }
+  salvaDati();
+  render();
+}
+
+function renderGanttOnly(){
+  const piano = pianoCorrente();
+  if(!piano) return;
+  const calcolo = calcolaPianificazione(piano);
+  renderMiniCalendario(piano, calcolo);
+  renderPannelloDiagramma(piano, calcolo);
+}
+
+// Ricostruisce SEMPRE insieme riepilogo, avviso ed esportazione: qualunque modifica
+// (lezione saltata, vacanza, numero di lezioni di un modulo) passa da qui, così
+// il conteggio "lezioni mancanti" non resta mai disallineato dal resto.
+// 31 gennaio dell'anno in cui cade la fine delle lezioni.
+function defaultFineQuadrimestre(piano){
+  const anno = piano.dataFine ? Number(piano.dataFine.slice(0,4)) : new Date().getFullYear();
+  return anno + '-01-31';
+}
+
+// Conta le verifiche per quadrimestre, distinte per tipo.
+function riepilogoVerifiche(piano, calcolo){
+  const limite = piano.fineQuadrimestre || defaultFineQuadrimestre(piano);
+  const vuoto = ()=>({ scritte:0, orali:0, recuperi:0, lezioni:0, totale:0 });
+  const q = [vuoto(), vuoto()];
+  (calcolo.verifiche||[]).forEach(pv => {
+    if(!pv.date || !pv.date.length) return;
+    const i = pv.date[0] <= limite ? 0 : 1;
+    q[i].totale++;
+    q[i].lezioni += pv.date.length;
+    if(pv.verifica.tipo === 'orale') q[i].orali++; else q[i].scritte++;
+    if(pv.verifica.qualifica === 'recupero') q[i].recuperi++;
+  });
+  const tot = vuoto();
+  ['scritte','orali','recuperi','lezioni','totale'].forEach(k => tot[k] = q[0][k] + q[1][k]);
+  return { limite, primo:q[0], secondo:q[1], totale:tot };
+}
+
+function rigaRiepilogo(nome, d){
+  return `<tr><td>${nome}</td><td>${d.totale}</td><td>${d.scritte}</td><td>${d.orali}</td><td>${d.recuperi}</td><td>${d.lezioni}</td></tr>`;
+}
+
+function renderPannelloDiagramma(piano, calcolo){
+  const cont = document.getElementById('pannello-diagramma');
+  if(!cont) return;
+  const totSpieg = calcolo.righe.reduce((s,r)=>s+r.lezioniPreviste,0);
+  const totVerif = calcolo.righe.reduce((s,r)=>s+r.lezioniVerifica,0);
+  const totServe = totSpieg + totVerif + calcolo.overflowTotale;
+  const sfora = calcolo.overflowTotale;
+  cont.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+      <h3>Diagramma</h3>
+      <button class="btn-aggiungi" id="btn-esporta-word">⤓ esporta crono programma (RTF — Word/Pages)</button>
+    </div>
+    ${sfora>0
+      ? `<div class="banner-sforo">⚠︎ Stai sforando di <b>${sfora}</b> ${sfora===1?'lezione':'lezioni'}: la programmazione richiede <b>${totServe}</b> lezioni (${totSpieg} di spiegazione + ${totVerif+sfora} di verifica) ma nel periodo ne hai solo <b>${calcolo.lezioniTotali}</b>.</div>`
+      : `<div class="banner-ok">✓ La programmazione ci sta: richiede <b>${totServe}</b> lezioni (${totSpieg} di spiegazione + ${totVerif} di verifica) su <b>${calcolo.lezioniTotali}</b> disponibili — margine di <b>${calcolo.lezioniTotali - totServe}</b> ${(calcolo.lezioniTotali-totServe)===1?'lezione':'lezioni'}.</div>`}
+    <div class="gantt-riepilogo">
+      <div><b>${calcolo.righe.filter(r=>!r.overflow).length}</b>/${piano.moduli.length} moduli entro fine periodo</div>
+    </div>
+    ${(()=>{ const r = riepilogoVerifiche(piano, calcolo); return `
+    <table class="tab-riepilogo">
+      <thead><tr><th>Verifiche</th><th>tot.</th><th>scritte</th><th>orali</th><th>recuperi</th><th>lezioni</th></tr></thead>
+      <tbody>
+        ${rigaRiepilogo('Primo quadrimestre (fino al ' + formattaDataBreve(r.limite) + ')', r.primo)}
+        ${rigaRiepilogo('Secondo quadrimestre', r.secondo)}
+        <tr class="riga-totale">${rigaRiepilogo('Totale anno', r.totale).replace('<tr>','').replace('</tr>','')}</tr>
+      </tbody>
+    </table>`; })()}
+    <div class="gantt-scroll"><div class="gantt" id="gantt-area"></div></div>
+    ${calcolo.overflowTotale>0 ? `<div class="avviso">Con il calendario attuale non ci sono abbastanza lezioni per completare tutti i moduli entro il ${formattaDataBreve(piano.dataFine)}. Valuta di allungare il periodo, aggiungere lezioni extra o ridurre le lezioni previste in qualche modulo.</div>` : ''}
+  `;
+  document.getElementById('btn-esporta-word').addEventListener('click', ()=> esportaCronoProgrammaWord(piano, calcolo));
+  renderGantt(piano, calcolo);
+}
+
+function renderGantt(piano, calcolo){
+  const area = document.getElementById('gantt-area');
+  if(!area) return;
+  area.innerHTML = '';
+  if(!piano.dataInizio || !piano.dataFine || piano.moduli.length===0){
+    area.innerHTML = '<div style="color:var(--inchiostro-tenue); font-size:0.85rem; padding:20px;">Aggiungi date e almeno un modulo per vedere il diagramma.</div>';
+    return;
+  }
+  const inizio = parseISO(piano.dataInizio);
+  const fine = parseISO(piano.dataFine);
+  const totaleGiorni = Math.max(1, (fine - inizio) / 86400000);
+
+  // riga mesi
+  const rigaMesi = document.createElement('div');
+  rigaMesi.className = 'gantt-mesi';
+  let cursoreMese = new Date(inizio.getFullYear(), inizio.getMonth(), 1);
+  const segmenti = [];
+  while(cursoreMese <= fine){
+    const inizioSeg = cursoreMese < inizio ? inizio : new Date(cursoreMese);
+    const fineMese = new Date(cursoreMese.getFullYear(), cursoreMese.getMonth()+1, 0);
+    const fineSeg = fineMese > fine ? fine : fineMese;
+    const giorniSeg = Math.max(1, (fineSeg - inizioSeg) / 86400000 + 1);
+    segmenti.push({ label: MESI_LABEL[cursoreMese.getMonth()].slice(0,3), giorni: giorniSeg });
+    cursoreMese.setMonth(cursoreMese.getMonth()+1);
+  }
+  segmenti.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'gantt-mese-label';
+    el.style.flex = s.giorni + ' 0 0';
+    el.textContent = s.label;
+    rigaMesi.appendChild(el);
+  });
+  area.appendChild(rigaMesi);
+
+  const oggi = new Date();
+  const offsetOggiPerc = oggi >= inizio && oggi <= fine ? ((oggi - inizio)/86400000 / totaleGiorni * 100) : null;
+
+  const corpoGantt = document.createElement('div');
+  corpoGantt.style.position = 'relative';
+
+  calcolo.righe.forEach((riga, i) => {
+    const rigaEl = document.createElement('div');
+    rigaEl.className = 'riga-gantt';
+    const dIn = parseISO(riga.dataInizio);
+    const dFi = parseISO(riga.dataFineTotale);
+    const leftPerc = Math.max(0, (dIn - inizio)/86400000 / totaleGiorni * 100);
+    const widthPerc = Math.max(1.2, ((dFi - dIn)/86400000 + 1) / totaleGiorni * 100);
+    const barra = document.createElement('div');
+    barra.className = 'barra-modulo' + (riga.overflow ? ' overflow':'');
+    barra.style.left = leftPerc + '%';
+    barra.style.width = widthPerc + '%';
+    barra.style.background = riga.overflow ? '' : PALETTE_BARRE[i % PALETTE_BARRE.length];
+    barra.textContent = riga.modulo.nome + ' · ' + riga.lezioniAssegnate + '/' + riga.lezioniPreviste;
+    barra.title = riga.modulo.nome + ': ' + formattaDataBreve(riga.dataInizio) + ' – ' + formattaDataBreve(riga.dataFineTotale) + (riga.dataFineTotale !== riga.dataFine ? ' (verifica inclusa)' : '') + (riga.overflow ? ' (lezioni insufficienti)':'');
+    rigaEl.appendChild(barra);
+    corpoGantt.appendChild(rigaEl);
+  });
+
+  if(offsetOggiPerc !== null){
+    const linea = document.createElement('div');
+    linea.className = 'oggi-linea';
+    linea.style.left = offsetOggiPerc + '%';
+    const etichetta = document.createElement('div');
+    etichetta.className = 'oggi-etichetta';
+    etichetta.style.left = offsetOggiPerc + '%';
+    etichetta.textContent = 'oggi';
+    linea.appendChild(etichetta);
+    corpoGantt.appendChild(linea);
+  }
+
+  // marcatori delle verifiche (date calcolate: seguono i moduli)
+  (calcolo.verifiche||[]).forEach(pv=>{
+    if(!pv.attiva || !pv.date.length) return;
+    const dDa = parseISO(pv.date[0]);
+    const dA = parseISO(pv.date[pv.date.length-1]);
+    if(dA < inizio || dDa > fine) return;
+    const leftPerc = Math.max(0, (dDa - inizio)/86400000 / totaleGiorni * 100);
+    const widthPerc = Math.max(0.6, ((dA - dDa)/86400000 + 1) / totaleGiorni * 100);
+    const marcatore = document.createElement('div');
+    marcatore.className = 'verifica-marcatore';
+    marcatore.style.left = leftPerc + '%';
+    marcatore.style.width = widthPerc + '%';
+    marcatore.title = pv.etichetta + ': ' + formattaDataBreve(pv.date[0]) + (pv.date.length>1 ? ' – ' + formattaDataBreve(pv.date[pv.date.length-1]) : '');
+    const etichettaV = document.createElement('div');
+    etichettaV.className = 'verifica-etichetta';
+    etichettaV.textContent = '✎ ' + pv.etichetta;
+    marcatore.appendChild(etichettaV);
+    corpoGantt.appendChild(marcatore);
+  });
+
+  corpoGantt.style.minHeight = (calcolo.righe.length * 40) + 'px';
+
+  area.appendChild(corpoGantt);
+}
+
+document.getElementById('btn-nuovo-piano').addEventListener('click', nuovoPiano);
+
+// ---------- Backup su file (esporta / ripristina) ----------
+
+function mostraNotaBackup(testo, classe){
+  const nota = document.getElementById('nota-backup');
+  if(!nota) return;
+  nota.textContent = testo;
+  nota.className = 'nota-backup' + (classe ? ' ' + classe : '');
+  if(classe){
+    clearTimeout(mostraNotaBackup._t);
+    mostraNotaBackup._t = setTimeout(()=>{
+      nota.className = 'nota-backup';
+      nota.textContent = 'Consiglio: salva il file nel tuo Google Drive dopo modifiche importanti.';
+    }, 5000);
+  }
+}
+
+function esportaBackup(){
+  const dati = {
+    _formato: 'pianificatore-backup',
+    _versione: 1,
+    _dataEsportazione: new Date().toISOString(),
+    stato: stato
+  };
+  const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const oggi = new Date();
+  const stamp = oggi.getFullYear() + '-' + String(oggi.getMonth()+1).padStart(2,'0') + '-' + String(oggi.getDate()).padStart(2,'0');
+  const nPiani = (stato.piani||[]).length;
+  a.download = 'pianificatore_backup_' + stamp + '_' + nPiani + 'piani.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  ultimoBackup = Date.now();
+  mostraNotaBackup('Backup salvato (' + nPiani + ' ' + (nPiani===1?'piano':'piani') + '). Conservalo nel tuo Drive.', 'ok');
+}
+
+function importaBackup(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const dati = JSON.parse(e.target.result);
+      let statoImportato = null;
+      if(dati && dati._formato === 'pianificatore-backup' && dati.stato && Array.isArray(dati.stato.piani)){
+        statoImportato = dati.stato;
+      } else if(dati && Array.isArray(dati.piani)){
+        statoImportato = dati; // tolleranza: file che contiene direttamente lo stato
+      }
+      if(!statoImportato){
+        mostraNotaBackup('File non valido: non sembra un backup del pianificatore.', 'errore');
+        return;
+      }
+      const nPiani = statoImportato.piani.length;
+      const conferma = confirm(
+        'Ripristinare ' + nPiani + ' ' + (nPiani===1?'piano':'piani') + ' da questo file?\n\n' +
+        'ATTENZIONE: i piani attualmente presenti in questo dispositivo verranno sostituiti da quelli del file.\n\n' +
+        'Se vuoi prima mettere al sicuro lo stato attuale, annulla e usa "Salva backup su file".'
+      );
+      if(!conferma) return;
+      stato = statoImportato;
+      if(!stato.pianoAttivo && stato.piani.length) stato.pianoAttivo = stato.piani[0].id;
+      salvaDati();
+      ultimoBackup = Date.now(); // subito dopo il ripristino, il file su disco coincide con i dati
+      render();
+      mostraNotaBackup('Ripristino completato: ' + nPiani + ' ' + (nPiani===1?'piano':'piani') + '.', 'ok');
+    }catch(err){
+      console.error(err);
+      mostraNotaBackup('Impossibile leggere il file (formato non riconosciuto).', 'errore');
+    }
+  };
+  reader.onerror = () => mostraNotaBackup('Errore nella lettura del file.', 'errore');
+  reader.readAsText(file);
+}
+
+document.getElementById('btn-esporta-backup').addEventListener('click', esportaBackup);
+document.getElementById('btn-importa-backup').addEventListener('click', ()=> document.getElementById('input-file-backup').click());
+document.getElementById('input-file-backup').addEventListener('change', e=>{
+  const file = e.target.files && e.target.files[0];
+  if(file) importaBackup(file);
+  e.target.value = ''; // consente di re-importare lo stesso file
+});
+
+// Promemoria alla chiusura/ricarica: se ci sono modifiche più recenti dell'ultimo
+// backup su file, il browser mostra l'avviso nativo "vuoi lasciare la pagina?".
+// (I dati restano comunque salvati nel browser; questo serve solo a ricordare il backup su file.)
+window.addEventListener('beforeunload', e=>{
+  if(ultimaModifica > ultimoBackup && (stato.piani||[]).length > 0){
+    e.preventDefault();
+    e.returnValue = ''; // richiesto da alcuni browser per attivare l'avviso
+    return '';
+  }
+});
+
+if(stato.piani.length === 0){
+  render();
+} else {
+  if(!stato.pianoAttivo) stato.pianoAttivo = stato.piani[0].id;
+  render();
+}
 </script>
 </body>
 </html>
