@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scelta del giorno libero — analisi festività</title>
+<style>
+  :root{
+    --bg:#fdf6ec; --card:#fffaf3; --line:#e8d5bd; --ink:#4a3520;
+    --accent:#c1622d; --accent2:#e08b3e; --soft:#f6e5cf; --ok:#7a8b3c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px;color:var(--accent)}
+  .sub{margin:0 0 22px;font-size:14px;opacity:.75}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px;
+        box-shadow:0 1px 3px rgba(120,80,40,.07)}
+  h2{font-size:16px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+  label{font-size:13px;font-weight:600;display:block;margin-bottom:4px}
+  input,select{font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;
+               background:#fff;color:var(--ink)}
+  input[type=date]{min-width:150px}
+  input[type=number]{width:110px}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  td input{width:100%}
+  button{font:inherit;font-size:14px;font-weight:600;padding:9px 16px;border:none;border-radius:8px;
+         background:var(--accent);color:#fff;cursor:pointer}
+  button:hover{background:#a8511f}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+  button.ghost:hover{background:var(--soft)}
+  button.mini{padding:4px 9px;font-size:13px;background:transparent;color:#a8511f;border:1px solid var(--line)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .bar{height:16px;border-radius:8px;background:linear-gradient(90deg,var(--accent2),var(--accent));min-width:3px}
+  .best{background:#eef2dd}
+  .worst{background:#fbe7d8}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px}
+  .tag.b{background:var(--ok);color:#fff}
+  .tag.w{background:var(--accent);color:#fff}
+  .note{font-size:13px;background:var(--soft);border-radius:8px;padding:12px;margin-top:14px}
+  ul.det{margin:6px 0 0;padding-left:18px;font-size:13px}
+  .hidden{display:none}
+  .hint{font-size:12px;opacity:.7;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Scelta del giorno libero</h1>
+<p class="sub">Quante giornate di lezione cadono su ciascun giorno della settimana per effetto di festività e sospensioni. Vale per qualsiasi anno scolastico.</p>
+
+<div class="card">
+  <h2>1 · Anno scolastico</h2>
+  <div class="row">
+    <div><label>Anno di partenza</label><input type="number" id="anno" value="2026" min="2000" max="2100"></div>
+    <div><label>Inizio lezioni</label><input type="date" id="inizio"></div>
+    <div><label>Fine lezioni</label><input type="date" id="fine"></div>
+    <div><label>Settimana</label>
+      <select id="settimana">
+        <option value="5">Corta (lun–ven)</option>
+        <option value="6">Lunga (lun–sab)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <div><label>Santo patrono — nome</label><input type="text" id="patronoNome" value="San Saturnino" style="width:200px"></div>
+    <div><label>giorno</label><input type="number" id="patronoG" value="30" min="1" max="31" style="width:70px"></div>
+    <div><label>mese</label><input type="number" id="patronoM" value="10" min="1" max="12" style="width:70px"></div>
+    <div><button class="ghost" onclick="generaAnno()">Genera festività dell'anno</button></div>
+  </div>
+  <p class="hint">Il generatore calcola da solo Pasqua, martedì grasso e le festività civili per l'anno indicato. Poi puoi correggere tutto a mano.</p>
+</div>
+
+<div class="card">
+  <h2>2 · Festività e sospensioni</h2>
+  <table>
+    <thead><tr><th style="width:44%">Descrizione</th><th>Dal</th><th>Al</th><th style="width:60px"></th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="actions">
+    <button class="ghost" onclick="addRow('','','')">+ Aggiungi riga</button>
+    <button class="ghost" onclick="svuota()">Svuota</button>
+    <button class="ghost" onclick="esporta()">Salva su file</button>
+    <button class="ghost" onclick="document.getElementById('importa').click()">Carica da file</button>
+    <input type="file" id="importa" accept=".json" class="hidden" onchange="importa(event)">
+    <button onclick="calcola()">Calcola</button>
+  </div>
+  <div class="note">Aggiungi i giorni deliberati dal Consiglio d'Istituto, i ponti e ogni altra sospensione locale. Con “Salva su file” conservi la configurazione di un anno e la ricarichi quando serve.</div>
+</div>
+
+<div class="card hidden" id="out">
+  <h2>3 · Risultato</h2>
+  <table>
+    <thead><tr><th>Giorno</th><th style="width:100px">Giorni persi</th><th style="width:40%"></th><th style="width:130px">Lezioni effettive</th></tr></thead>
+    <tbody id="res"></tbody>
+  </table>
+  <div class="note" id="consiglio"></div>
+  <div id="dettaglio"></div>
+</div>
+
+</div>
+
+<script>
+const GG = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+
+/* ---------- utilità date ---------- */
+function iso(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function D(y,m,g){ return new Date(y, m-1, g, 12); }
+function piu(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+// Pasqua (algoritmo di Gauss / Meeus per il calendario gregoriano)
+function pasqua(y){
+  const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4,
+        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451),
+        mese=Math.floor((h+l-7*m+114)/31), giorno=((h+l-7*m+114)%31)+1;
+  return D(y,mese,giorno);
+}
+
+/* ---------- tabella ---------- */
+function addRow(n,d,a){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><input type="text" value="${n}" placeholder="es. Ponte"></td>
+    <td><input type="date" value="${d}"></td>
+    <td><input type="date" value="${a}"></td>
+    <td><button class="mini" onclick="this.closest('tr').remove()">✕</button></td>`;
+  document.getElementById('tbody').appendChild(tr);
+}
+function svuota(){ document.getElementById('tbody').innerHTML=''; }
+
+/* ---------- generatore ---------- */
+function generaAnno(){
+  const y = parseInt(document.getElementById('anno').value);
+  if(isNaN(y)) return;
+  const y2 = y+1;
+  const P = pasqua(y2);
+
+  document.getElementById('inizio').value = iso(D(y,9,15));
+  document.getElementById('fine').value   = iso(D(y2,6,8));
+
+  const pn = document.getElementById('patronoNome').value.trim() || 'Santo patrono';
+  const pg = parseInt(document.getElementById('patronoG').value);
+  const pm = parseInt(document.getElementById('patronoM').value);
+  const annoPat = pm >= 9 ? y : y2;
+
+  const lista = [
+    ['San Francesco d\'Assisi (patrono d\'Italia)', D(y,10,4), D(y,10,4)],
+    [pn + ' (patrono)', D(annoPat,pm,pg), D(annoPat,pm,pg)],
+    ['Ognissanti', D(y,11,1), D(y,11,1)],
+    ['Immacolata', D(y,12,8), D(y,12,8)],
+    ['Vacanze di Natale', D(y,12,23), D(y2,1,6)],
+    ['Martedì grasso', piu(P,-47), piu(P,-47)],
+    ['Vacanze di Pasqua', piu(P,-3), piu(P,1)],
+    ['Anniversario della Liberazione', D(y2,4,25), D(y2,4,25)],
+    ['Sa die de sa Sardigna', D(y2,4,28), D(y2,4,28)],
+    ['Festa del Lavoro', D(y2,5,1), D(y2,5,1)],
+    ['Festa della Repubblica', D(y2,6,2), D(y2,6,2)]
+  ];
+  svuota();
+  lista.forEach(x => addRow(x[0], iso(x[1]), iso(x[2])));
+  calcola();
+}
+
+/* ---------- salva / carica ---------- */
+function stato(){
+  return {
+    anno: document.getElementById('anno').value,
+    inizio: document.getElementById('inizio').value,
+    fine: document.getElementById('fine').value,
+    settimana: document.getElementById('settimana').value,
+    patrono: [document.getElementById('patronoNome').value,
+              document.getElementById('patronoG').value,
+              document.getElementById('patronoM').value],
+    righe: [...document.querySelectorAll('#tbody tr')].map(tr=>{
+      const c = tr.querySelectorAll('input'); return [c[0].value, c[1].value, c[2].value];
+    })
+  };
+}
+function esporta(){
+  const s = stato();
+  const blob = new Blob([JSON.stringify(s,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'giorno-libero-' + s.anno + '.json';
+  a.click();
+}
+function importa(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const s = JSON.parse(r.result);
+      document.getElementById('anno').value = s.anno || 2026;
+      document.getElementById('inizio').value = s.inizio || '';
+      document.getElementById('fine').value = s.fine || '';
+      document.getElementById('settimana').value = s.settimana || '5';
+      if(s.patrono){
+        document.getElementById('patronoNome').value = s.patrono[0];
+        document.getElementById('patronoG').value = s.patrono[1];
+        document.getElementById('patronoM').value = s.patrono[2];
+      }
+      svuota();
+      (s.righe||[]).forEach(x => addRow(x[0], x[1], x[2]));
+      calcola();
+    }catch(e){ alert('File non valido.'); }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+
+/* ---------- calcolo ---------- */
+function calcola(){
+  const vi = document.getElementById('inizio').value, vf = document.getElementById('fine').value;
+  if(!vi || !vf){ return; }
+  const inizio = new Date(vi+'T12:00:00'), fine = new Date(vf+'T12:00:00');
+  const nGiorni = parseInt(document.getElementById('settimana').value);
+  if(fine < inizio){ alert('La data di fine precede quella di inizio.'); return; }
+
+  const sosp = new Map();
+  [...document.querySelectorAll('#tbody tr')].forEach(tr=>{
+    const c = tr.querySelectorAll('input');
+    const nome = c[0].value || 'Sospensione';
+    if(!c[1].value) return;
+    const d0 = new Date(c[1].value+'T12:00:00');
+    const d1 = c[2].value ? new Date(c[2].value+'T12:00:00') : d0;
+    for(let d=new Date(d0); d<=d1; d.setDate(d.getDate()+1)) sosp.set(iso(d), nome);
+  });
+
+  const persi = Array(6).fill(0), lezioni = Array(6).fill(0), elenco = [[],[],[],[],[],[]];
+  for(let d=new Date(inizio); d<=fine; d.setDate(d.getDate()+1)){
+    const w = (d.getDay()+6)%7;               // 0 = lunedì
+    if(w >= nGiorni) continue;                // domenica (e sabato se settimana corta)
+    const k = iso(d);
+    if(sosp.has(k)){
+      persi[w]++;
+      elenco[w].push(d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) + ' — ' + sosp.get(k));
+    } else lezioni[w]++;
+  }
+
+  const max = Math.max(...persi.slice(0,nGiorni));
+  const min = Math.min(...persi.slice(0,nGiorni));
+  const res = document.getElementById('res'); res.innerHTML='';
+  for(let w=0; w<nGiorni; w++){
+    const tr = document.createElement('tr');
+    if(persi[w]===min) tr.className='best';
+    else if(persi[w]===max) tr.className='worst';
+    const tag = persi[w]===min ? '<span class="tag b">meno colpito</span>'
+              : persi[w]===max ? '<span class="tag w">più colpito</span>' : '';
+    tr.innerHTML = `<td><strong>${GG[w]}</strong>${tag}</td>
+      <td>${persi[w]}</td>
+      <td><div class="bar" style="width:${max? persi[w]/max*100 : 0}%"></div></td>
+      <td>${lezioni[w]}</td>`;
+    res.appendChild(tr);
+  }
+
+  const migliori = GG.slice(0,nGiorni).filter((_,w)=>persi[w]===min);
+  const peggiori = GG.slice(0,nGiorni).filter((_,w)=>persi[w]===max);
+  document.getElementById('consiglio').innerHTML =
+    `<strong>Come leggerlo.</strong> Se il giorno libero cade su un giorno già “bucato” dalle festività, quei riposi li perdi: eri libera comunque. ` +
+    `Per guadagnare più giornate libere conviene chiedere <strong>${migliori.join(' o ')}</strong> (${min} sospensioni). ` +
+    `Da evitare in quest'ottica: <strong>${peggiori.join(', ')}</strong> (${max} sospensioni). ` +
+    `Se invece conta la continuità didattica, il ragionamento si rovescia: il giorno libero va dove le festività fanno già più danno.`;
+
+  let html = '';
+  for(let w=0; w<nGiorni; w++){
+    if(!elenco[w].length) continue;
+    html += `<p style="font-size:13px;margin:12px 0 0"><strong>${GG[w]}</strong> (${persi[w]})</p><ul class="det">`
+          + elenco[w].map(x=>`<li>${x}</li>`).join('') + '</ul>';
+  }
+  document.getElementById('dettaglio').innerHTML = html;
+  document.getElementById('out').classList.remove('hidden');
+}
+
+/* avvio */
+generaAnno();
+</script>
+</body>
+</html>
